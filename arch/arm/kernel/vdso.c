@@ -335,13 +335,17 @@ void update_vsyscall(struct timekeeper *tk)
 	vdso_data->wtm_clock_sec		= wtm->tv_sec;
 	vdso_data->wtm_clock_nsec		= wtm->tv_nsec;
 
-	if (vdso_data->tk_is_cntvct) {
+	if (!vdso_data->use_syscall) {
+		struct timespec btm = ktime_to_timespec(tk->offs_boot);
+
 		vdso_data->cs_cycle_last	= tk->tkr_mono.cycle_last;
 		vdso_data->xtime_clock_sec	= tk->xtime_sec;
 		vdso_data->xtime_clock_snsec	= tk->tkr_mono.xtime_nsec;
 		vdso_data->cs_mult		= tk->tkr_mono.mult;
 		vdso_data->cs_shift		= tk->tkr_mono.shift;
 		vdso_data->cs_mask		= tk->tkr_mono.mask;
+		vdso_data->btm_sec		= btm.tv_sec;
+		vdso_data->btm_nsec		= btm.tv_nsec;
 	}
 
 	vdso_write_end(vdso_data);
