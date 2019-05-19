@@ -131,3 +131,7 @@ kernel/configs/android-*.cfg
 *.patch
 *.list
 out/*
+build/Changelog\.txt
+out
+build/Image\.gz-dtb
+upload/
