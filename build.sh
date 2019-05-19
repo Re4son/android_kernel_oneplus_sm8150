@@ -47,13 +47,13 @@ restore='\033[0m'
 	co=$k/out
 
 # Source Path to compiled Image.gz-dtb
-	i=$k/out/arch/arm64/boot/Image.gz-dtb
+	i=$k/out/arch/arm64/boot/Image-dtb
 
 # Destination Path for compiled modules
 	zm=$k/build/system/lib/modules
 
 # Destination path for compiled Image.gz-dtb
-	zi=$k/build/Image.gz-dtb
+	zi=$k/build/Image-dtb
 	
 # Source path for building kernel zip
 	zp=$k/build/
