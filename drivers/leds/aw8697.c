@@ -3155,6 +3155,9 @@ static ssize_t aw8697_activate_mode_store(struct device *dev,
     unsigned int val = 0;
     int rc = 0;
 
+    if (!aw8697->ram_init)
+       return count;
+
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
@@ -3237,6 +3240,8 @@ static ssize_t aw8697_vmax_store(struct device *dev,
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
+    if (!aw8697->ram_init)
+       return count;
 
     pr_info("%s: value=%d\n", __FUNCTION__, val);
     mutex_lock(&aw8697->lock);
@@ -3276,7 +3281,8 @@ static ssize_t aw8697_gain_store(struct device *dev,
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
-
+    if (!aw8697->ram_init)
+       return count;
     pr_info("%s: value=%d\n", __FUNCTION__, val);
     mutex_lock(&aw8697->lock);
     aw8697->gain = val;
@@ -3361,6 +3367,9 @@ static ssize_t aw8697_seq_store(struct device *dev,
     struct aw8697 *aw8697 = container_of(cdev, struct aw8697, cdev);
 #endif
     unsigned int databuf[2] = {0, 0};
+
+    if (!aw8697->ram_init)
+       return count;
 
     if(2 == sscanf(buf, "%x %x", &databuf[0], &databuf[1])) {
         pr_info("%s: seq%d=0x%x\n", __FUNCTION__, databuf[0], databuf[1]);
@@ -3497,6 +3506,9 @@ static ssize_t aw8697_rtp_store(struct device *dev, struct device_attribute *att
     unsigned int val = 0;
     int rc = 0;
     int rtp_is_going_on = 0;
+
+    if (!aw8697->ram_init)
+       return count;
 
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0) {
