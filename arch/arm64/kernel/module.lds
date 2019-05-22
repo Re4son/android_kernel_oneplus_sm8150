@@ -2,6 +2,7 @@ SECTIONS {
 	.plt : { BYTE(0) }
 	.init.plt : { BYTE(0) }
 	.text.ftrace_trampoline : { BYTE(0) }
+	.bss : { *(.bss .bss.[0-9a-zA-Z_]*) }
 
 	/* Undo -fdata-sections and -ffunction-sections */
 	.bss : { *(.bss .bss.[0-9a-zA-Z_]*) }
