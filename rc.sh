@@ -6,16 +6,17 @@ blink_red='\033[05;31m'
 restore='\033[0m'
 
 ############################################################
-### Build script for HolyDragon kernel ###
+### Single run script for SkyDragon Kernel
 ############################################################
 
-# This is the full build script used to build the official kernel zip.
+# This is a single run build script for recompiling purposes if run.sh or build.sh fail.
+# This does not zip anything for you. 
 
 # Minimum requirements to build:
 # Already working build environment :P 
 #
 # In this script: 
-# You will need to change the 'Source path to kernel tree' to match your current path to this source.
+# You will need to change the 'Source Path to kernel tree' to match your current path to this source.
 # You will need to change the 'Compile Path to out' to match your current path to this source.
 # You will also need to edit the '-j32' under 'Start Compile' section and adjust that to match the amount of cores you want to use to build.
 # 
@@ -35,7 +36,7 @@ restore='\033[0m'
 	o="O=/home/holyangel/android/Kernels/sm8150/out"
 
 # CPU threads
-	th="-j32"
+	th="-j4"
 
 ############################################################
 # Start Compile
