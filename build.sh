@@ -29,7 +29,7 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/Toolchains/Snapdragon_LLVM_v6.0.9/bin/
+	CC_DIR=/home/holyangel/android/Toolchains/Snapdragon_LLVM_v8.0.6/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
