@@ -4,14 +4,14 @@ SkyDragon Kernel for OnePlus 7 Pro
 For this repo, you can clone as-is to 'sm8150' folder
 git clone https://github.com/holyangel/sm8150.git
 
-I am currently using QCOM SnapDragon Clang v6.0.9 and Google aarch64-linux-android-4.9 toolchains.
-To sync Toolchain: 
+I am currently using QCOM SnapDragon Clang v8.0.6 and Xanaxdroid Aarch64-8.0 toolchains. 
 
-https://developer.qualcomm.com/download/sdllvm/snapdragon-llvm-compiler-android-linux64.tar.gz
+https://developer.qualcomm.com/software/snapdragon-llvm-compiler-android/tools
 
-git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+https://bitbucket.org/xanaxdroid/aarch64-8.0.git
 
 You will need to edit lines 315 and 316 of Makefile to point to where you have synced the aarch64 toolchain.
+You will need to edit the build scripts to point to where you have synced the snapdragon llvm toolchain.
 
 3 Build scripts are provided for you to build, you will need to edit the variable paths in them to point to your sources.
 
