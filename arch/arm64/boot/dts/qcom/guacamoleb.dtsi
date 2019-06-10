@@ -22,7 +22,7 @@
 		thermal-sensors = <&pm8150_adc_tm ADC_AMUX_THM1_PU2>;
 		trips {
 			freq_config1: freq_config1 {
-				temperature = <52000>;
+				temperature = <56000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
