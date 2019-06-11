@@ -1,4 +1,4 @@
-/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -77,7 +77,6 @@ enum haptics_custom_effect_param {
 #define HAP_SC_DET_TIME_US		1000000
 #define FF_EFFECT_COUNT_MAX		32
 #define HAP_DISABLE_DELAY_USEC		1000
-#define HAP_VMAX_MV_WAEK		1000 /*OP set weak vibraton vmax*/
 
 /* haptics module register definitions */
 #define REG_HAP_STATUS1			0x0A
@@ -307,7 +306,7 @@ static int qti_haptics_write(struct qti_hap_chip *chip,
 	}
 
 	for (i = 0; i < len; i++)
-		dev_dbg(chip->dev, "Update addr 0x%x to val 0x%x\n",
+		dev_info(chip->dev, "Update addr 0x%x to val 0x%x\n",
 				addr + i, val[i]);
 
 unlock:
@@ -338,7 +337,7 @@ static int qti_haptics_masked_write(struct qti_hap_chip *chip, u8 addr,
 		dev_err(chip->dev, "Update addr 0x%x to val 0x%x with mask 0x%x failed, rc=%d\n",
 				addr, val, mask, rc);
 
-	dev_dbg(chip->dev, "Update addr 0x%x to val 0x%x with mask 0x%x\n",
+	dev_info(chip->dev, "Update addr 0x%x to val 0x%x with mask 0x%x\n",
 			addr, val, mask);
 unlock:
 	spin_unlock_irqrestore(&chip->bus_lock, flags);
@@ -628,11 +627,7 @@ static int qti_haptics_clear_settings(struct qti_hap_chip *chip)
 			HAP_WAVEFORM_BUFFER_MAX);
 	if (rc < 0)
 		return rc;
-/*GCEB-243 abnormal vibration begin*/
-	rc = qti_haptics_config_vmax(chip, HAP_VMAX_MV_WAEK);
-	if (rc < 0)
-		return rc;
-/*GCEB-243 abnormal vibration end*/
+
 	rc = qti_haptics_play(chip, true);
 	if (rc < 0)
 		return rc;
@@ -679,10 +674,6 @@ static int qti_haptics_load_constant_waveform(struct qti_hap_chip *chip)
 		play->playing_pattern = false;
 		play->effect = NULL;
 	} else {
-		/*op for vibration less than VMAX_MIN_PLAY_TIME_US begin*/
-		play->effect = &chip->predefined[5];
-		rc = qti_haptics_config_brake(chip, play->effect->brake);
-		/*op for vibration less than VMAX_MIN_PLAY_TIME_US begin*/
 		rc = qti_haptics_config_vmax(chip, config->vmax_mv);
 		if (rc < 0)
 			return rc;
@@ -768,6 +759,10 @@ static irqreturn_t qti_haptics_play_irq_handler(int irq, void *data)
 	int rc;
 
 	dev_dbg(chip->dev, "play_irq triggered\n");
+
+	if (effect == NULL)
+		goto handled;
+
 	if (play->playing_pos == effect->pattern_length) {
 		dev_dbg(chip->dev, "waveform playing done\n");
 		if (chip->play_irq_en) {
@@ -1130,8 +1125,11 @@ static int qti_haptics_hw_init(struct qti_hap_chip *chip)
 	 * Skip configurations below for ERM actuator
 	 * as they're only for LRA actuators
 	 */
-	if (config->act_type == ACT_ERM)
-		return 0;
+	if (config->act_type == ACT_ERM) {
+		/* Disable AUTO_RES for ERM */
+		rc = qti_haptics_lra_auto_res_enable(chip, false);
+		return rc;
+	}
 
 	addr = REG_HAP_CFG2;
 	val = config->lra_shape;

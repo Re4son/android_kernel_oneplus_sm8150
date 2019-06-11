@@ -551,6 +551,24 @@ struct main_board_info main_board_info_check[]={
     {1,   21  , "PVT"},
     {1,   22  , "MP"},
 
+    {2,   11  , "T0"},
+    {2,   11  , "EVT1"},
+    {2,   13  , "CS EVT1"},
+    {2,   14  , "EVT2"},
+    {2,   15  , "DVT"},
+    {2,   21  , "PVT"},
+    {2,   22  , "MP"},
+    {2,   24  , "USS EVT"},
+    {2,   25  , "USS DVT"},
+    {2,   31  , "USS PVT"},
+
+    {3,   11  , "T0"},
+    {3,   12  , "EVT1"},
+    {3,   13  , "DVT"},
+    {3,   14  , "PVT"},
+    {3,   15  , "MP"},
+
+    {-1,-1  , "Unknown"}
 };
 
 uint32 get_hw_version(void)

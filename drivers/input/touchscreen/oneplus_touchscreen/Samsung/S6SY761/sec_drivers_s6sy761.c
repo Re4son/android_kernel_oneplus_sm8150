@@ -1,15 +1,3 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : sec_drivers_s6sy761.c
- * Description: Source file for samsung s6sy761 driver
- * Version   : 1.0
- * Date        : 2018-01-10
- * Author    : Cong.Dai@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
 #include <linux/sysfs.h>
@@ -71,7 +59,7 @@ int opticalfp_irq_handler(struct fp_underscreen_info* tp_info);
 /**************************** end of function delcare*****************************************/
 
 
-/****** Start of other functions that work for oppo_touchpanel_operations callbacks***********/
+/****** Start of other functions that work for touchpanel_operations callbacks***********/
 static int sec_enable_black_gesture(struct chip_data_s6sy761 *chip_info, bool enable)
 {
     int ret = -1;
@@ -314,9 +302,9 @@ static int sec_gesture_switch_mode(struct chip_data_s6sy761 *chip_info, bool ena
 	int ret = -1;
 
     if (enable) {
-        ret = touch_i2c_write_byte(chip_info->client, SEC_CMD_WAKEUP_GESTURE_MODE, 1); //disable gesture
+        ret = touch_i2c_write_byte(chip_info->client, SEC_CMD_DISABLE_GESTURE_MODE, 1); //disable gesture
     } else {
-        ret = touch_i2c_write_byte(chip_info->client, SEC_CMD_WAKEUP_GESTURE_MODE, 0); //enable gesture
+        ret = touch_i2c_write_byte(chip_info->client, SEC_CMD_DISABLE_GESTURE_MODE, 0); //enable gesture
     }
 
     TPD_INFO("%s: gesture_switch: %s %s!\n", __func__, enable == 0 ? "enable":"disable", ret < 0 ? "failed" : "success");
@@ -350,6 +338,10 @@ int sec_wait_for_ready(struct chip_data_s6sy761 *chip_info, unsigned int ack)
         if (retry++ > retry_cnt) {
             TPD_INFO("%s: Time Over, event_buf: %02X, %02X, %02X, %02X, %02X, %02X, %02X, %02X \n", \
                         __func__, tBuff[0], tBuff[1], tBuff[2], tBuff[3], tBuff[4], tBuff[5], tBuff[6], tBuff[7]);
+			status = touch_i2c_read_byte(chip_info->client, SEC_READ_BOOT_STATUS);
+			if (status == SEC_STATUS_BOOT_MODE) {
+				TPD_INFO("%s: firmware in bootloader mode,boot failed\n", __func__);
+			}
             break;
         }
         sec_mdelay(20);
@@ -769,9 +761,9 @@ static void handleFourCornerPoint(struct Coordinate *point, int n)
     point[2] = down_most;
     point[3] = right_most;
 }
-/****** End of other functions that work for oppo_touchpanel_operations callbacks*************/
+/****** End of other functions that work for touchpanel_operations callbacks*************/
 
-/********* Start of implementation of oppo_touchpanel_operations callbacks********************/
+/********* Start of implementation of touchpanel_operations callbacks********************/
 static int sec_reset(void *chip_data)
 {
     int ret = -1;
@@ -1539,7 +1531,7 @@ static int sec_get_usb_state(void)
 }
 #endif
 
-static struct oppo_touchpanel_operations sec_ops = {
+static struct touchpanel_operations sec_ops = {
     .get_vendor                 = sec_get_vendor,
     .get_chip_info              = sec_get_chip_info,
     .reset                      = sec_reset,
@@ -1553,7 +1545,7 @@ static struct oppo_touchpanel_operations sec_ops = {
     .get_usb_state              = sec_get_usb_state,
     .get_face_state				= sec_get_face_detect,
 };
-/********* End of implementation of oppo_touchpanel_operations callbacks**********************/
+/********* End of implementation of touchpanel_operations callbacks**********************/
 
 
 /**************** Start of implementation of debug_info proc callbacks************************/

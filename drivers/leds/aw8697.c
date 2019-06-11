@@ -1579,24 +1579,6 @@ static int aw8697_haptic_audio_tz_list_clear(struct haptic_audio *haptic_audio)
 
 	return 0;
 }
-
-/*
-static int aw8697_haptic_audio_ctr_list_show(struct haptic_audio *haptic_audio)
-{
-	struct haptic_ctr *p_tmp = NULL;
-	unsigned int i = 0;
-
-	list_for_each_entry(p_tmp, &haptic_audio->ctr_list, list) {
-		pr_info("%s: ctr[%02d]: [%03d, %03d, %03d, %03d, %03d]\n",
-			__func__, i, p_tmp->cmd, p_tmp->play,
-			p_tmp->wavseq, p_tmp->loop, p_tmp->gain);
-		i++;
-
-	}
-	return 0;
-}
-*/
-
 static int aw8697_haptic_audio_ctr_list_insert(
 	struct haptic_audio *haptic_audio, struct haptic_ctr *haptic_ctr)
 {
@@ -1643,11 +1625,6 @@ static int aw8697_fb_notifier_callback_tp(struct notifier_block *self, unsigned 
 	int i = 0;
 	int *blank;
 	struct fb_event *evdata = data;
-	struct haptic_audio *haptic_audio = NULL;
-	struct haptic_audio_trust_zone *p_tmp = NULL;
-
-	haptic_audio = &(aw8697->haptic_audio);
-
 	blank = evdata->data;
 	pr_debug("%s: tp event = %ld, blank = %d\n", __func__, event, *blank);
 	i= *blank;
@@ -1680,34 +1657,16 @@ static int aw8697_fb_notifier_callback_tp(struct notifier_block *self, unsigned 
 	}
 #endif
 	if (event == 0) {
-		list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
-			if ((tp->id[i].pt_info.x+AW8697_HAPTIC_AI_X_JITTER*p_tmp->w/AW8697_HAPTIC_AI_X_DFT_W > p_tmp->x) &&
-				(tp->id[i].pt_info.x < p_tmp->x+p_tmp->w+AW8697_HAPTIC_AI_X_JITTER*p_tmp->w/AW8697_HAPTIC_AI_X_DFT_W) &&
-				(tp->id[i].pt_info.y+AW8697_HAPTIC_AI_Y_JITTER*p_tmp->h/AW8697_HAPTIC_AI_Y_DFT_H > p_tmp->y) &&
-				(tp->id[i].pt_info.y < p_tmp->y+p_tmp->h+AW8697_HAPTIC_AI_Y_JITTER*p_tmp->h/AW8697_HAPTIC_AI_Y_DFT_H)) {
-				pr_debug("%s: tp input point[%d, %04d, %04d] up is in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
-					__func__, tp->id[i].pt_info.id, tp->id[i].pt_info.x, tp->id[i].pt_info.y,
-					p_tmp->level, p_tmp->x, p_tmp->y, p_tmp->w, p_tmp->h);
-				if(tp->virtual_id == i) {
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.id = tp->id[i].pt_info.id;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.x = tp->id[i].pt_info.x;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.y = tp->id[i].pt_info.y;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.status = AW8697_HAPTIC_TP_ST_RELEASE;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].tp_flag = AW8697_HAPTIC_TP_RELEASE;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].release_flag = AW8697_HAPTIC_TP_RELEASE;
-					do_gettimeofday(&tp->id[AW8697_HAPTIC_TP_ID_MAX].t_release);
-				}
-				break;
+		pr_debug("%s: tp release: id=%d, status=%d\n", __func__, i, record_point[i].status);
+		if((AW8697_HAPTIC_TP_ST_RELEASE == record_point[i].status) &&
+			(record_point[i].status != tp->id[i].pt_info.status)) {
+			tp->id[i].pt_info.status = record_point[i].status;
+			tp->id[i].tp_flag = AW8697_HAPTIC_TP_RELEASE;
+			tp->id[i].release_flag = AW8697_HAPTIC_TP_RELEASE;
+			do_gettimeofday(&tp->id[i].t_release);
+			pr_debug("%s: tp_release: id=%d, status=%d, flag=%d",
+				__func__, i, tp->id[i].pt_info.status, tp->id[i].tp_flag);
 			}
-		}
-		tp->id[i].pt_info.status = AW8697_HAPTIC_TP_ST_RELEASE;
-		tp->id[i].tp_flag = AW8697_HAPTIC_TP_RELEASE;
-		tp->id[i].release_flag = AW8697_HAPTIC_TP_RELEASE;
-		do_gettimeofday(&tp->id[i].t_release);
-
-		pr_debug("%s: tp input point[%d, %04d, %04d] up to [%d, %04d, %04d] \n",
-			__func__, i, tp->id[i].pt_info.x, tp->id[i].pt_info.y,
-			i, tp->id[i].pt_info.x, tp->id[i].pt_info.y);
 	}
 
 	return 0;
@@ -1722,18 +1681,10 @@ static int aw8697_haptic_audio_init(struct aw8697 *aw8697)
 
 	aw8697_haptic_set_wav_seq(aw8697, 0x01, 0x00);
 
-	for (i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
-		//aw8697->haptic_audio.tp.id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
-		//aw8697->haptic_audio.tp.id[i].press_flag = AW8697_HAPTIC_TP_NULL;
-		//aw8697->haptic_audio.tp.id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-		//aw8697->haptic_audio.tp.id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
+	for (i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 		aw8697->haptic_audio.tp.id[i].tp_ai_match_flag = 1;
 		aw8697->haptic_audio.tp.id[i].no_play_cnt = 0;
 	}
-	//aw8697->haptic_audio.tp.play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
-	//aw8697->haptic_audio.tp.press_flag = AW8697_HAPTIC_TP_NULL;
-	//aw8697->haptic_audio.tp.tp_ai_match_flag = 0;
-	//aw8697->haptic_audio.tp.tp_ai_check_flag = 0;
 	aw8697->haptic_audio.tp.hap_match_without_tz_cnt = 0;
 	aw8697->haptic_audio.uevent_report_flag = 0;
 	aw8697->haptic_audio.hap_cnt_outside_tz = 0;
@@ -1746,6 +1697,7 @@ static int aw8697_haptic_audio_off(struct aw8697 *aw8697)
 
 	mutex_lock(&aw8697->lock);
 	aw8697_haptic_set_gain(aw8697, 0x80);
+
 	aw8697_haptic_stop(aw8697);
 	aw8697_haptic_audio_ctr_list_clear(&aw8697->haptic_audio);
 	mutex_unlock(&aw8697->lock);
@@ -1893,7 +1845,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 		break;
 	}
 	if(aw8697->haptic_audio.ctr.play) {
-		pr_debug("%s: cnt=%d, cmd=%d, play=%d, wavseq=%d, loop=%d, gain=%d\n",
+		pr_info("%s: cnt=%d, cmd=%d, play=%d, wavseq=%d, loop=%d, gain=%d\n",
 			__func__,
 			aw8697->haptic_audio.ctr.cnt,
 			aw8697->haptic_audio.ctr.cmd,
@@ -1913,7 +1865,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 	if(AW8697_HAPTIC_CMD_TP ==
 		(aw8697->haptic_audio.ctr.cmd & AW8697_HAPTIC_CMD_SYS)) {
 		do_gettimeofday(&tmp_time);
-		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 			/* get tp press delay and tp release delay */
 			press_delay = 0;
 			release_delay = 0;
@@ -1926,7 +1878,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 					(tmp_time.tv_usec-tp->id[i].t_release.tv_usec);
 			}
 			if(tp->id[i].press_flag || tp->id[i].release_flag) {
-				pr_debug("%s: id[%d]: press_flag=%d, press_delay=%dus, release_flag=%d, release_delaly=%dus\n",
+				pr_info("%s: id[%d]: press_flag=%d, press_delay=%dus, release_flag=%d, release_delaly=%dus\n",
 					__func__, i, tp->id[i].press_flag, press_delay, tp->id[i].release_flag, release_delay);
 			}
 
@@ -1939,7 +1891,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 						if (tp->id[i].pt_info.touch_flag == AW8697_HAPTIC_TP_TOUCH_VAIL) {
 							list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
 								if (aw8697_haptic_audio_tp_list_match(&(tp->id[i].pt_info), p_tmp)) {
-									pr_debug("%s: tp [%d %04d, %04d] touch time over max time,  in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
+									pr_info("%s: tp [%d %04d, %04d] touch time over max time,  in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
 										__func__, i, tp->id[i].pt_info.x, tp->id[i].pt_info.y,
 										p_tmp->level, p_tmp->x, p_tmp->y, p_tmp->w, p_tmp->h);
 									if (p_tmp->cnt) {
@@ -1950,7 +1902,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 									} else {
 										p_tmp->level = AW8697_HAPTIC_TZ_LEVEL_LOW;
 									}
-									pr_debug("%s: ai trust zone[%d, %04d, %04d, %04d, %04d] cnt=%d, touch no match vibrator\n",
+									pr_info("%s: ai trust zone[%d, %04d, %04d, %04d, %04d] cnt=%d, touch no match vibrator\n",
 										__func__, p_tmp->level, p_tmp->x, p_tmp->y,
 										p_tmp->w, p_tmp->h, p_tmp->cnt);
 									tp->id[i].pt_info.touch_flag = AW8697_HAPTIC_TP_TOUCH_INVAIL;
@@ -1977,15 +1929,6 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 							tp->id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NOMORE;
 							tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
 							tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-							if(i == AW8697_HAPTIC_TP_ID_MAX) {
-								tp->id[i].pt_info.status = AW8697_HAPTIC_TP_ST_RELEASE;
-								tp->id[i].pt_info.touch_flag = AW8697_HAPTIC_TP_TOUCH_INVAIL;
-								tp->id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].no_play_cnt = 0;
-								//tp->id[i].press_no_vibrate_flag = 0;
-							}
 							if(tp->id[i].press_no_vibrate_flag == 0)
 								tp->id[i].press_no_vibrate_flag = 2;
 						} else {
@@ -2002,9 +1945,9 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 						}
 					} else if(AW8697_HAPTIC_TP_PLAY_ENABLE == tp->id[i].play_flag) {
 					}
-					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, no_play_cnt=%d\n",
+					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, release_no_vibrate_flag=%d\n",
 						__func__, __LINE__, i, tp->id[i].play_flag, tp->id[i].press_flag, tp->id[i].release_flag,
-						tp->id[i].press_no_vibrate_flag, tp->id[i].no_play_cnt);
+						tp->id[i].press_no_vibrate_flag, tp->id[i].release_no_vibrate_flag);
 				}
 				if(AW8697_HAPTIC_TP_RELEASE == tp->id[i].release_flag) {
 					if(release_delay > tp->release_delay_max) {
@@ -2013,23 +1956,14 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 							tp->id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NOMORE;
 							tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
 							tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-							if(i == AW8697_HAPTIC_TP_ID_MAX) {
-								tp->id[i].pt_info.status = AW8697_HAPTIC_TP_ST_RELEASE;
-								tp->id[i].pt_info.touch_flag = AW8697_HAPTIC_TP_TOUCH_INVAIL;
-								tp->id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].no_play_cnt = 0;
-								//tp->id[i].press_no_vibrate_flag = 0;
-							}
 							if(tp->id[i].press_no_vibrate_flag == 0)
 								tp->id[i].press_no_vibrate_flag = 2;
 						} else {
 						}
 					}
-					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, no_play_cnt=%d\n",
+					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, release_no_vibrate_flag=%d\n",
 						__func__, __LINE__, i, tp->id[i].play_flag, tp->id[i].press_flag, tp->id[i].release_flag,
-						tp->id[i].press_no_vibrate_flag, tp->id[i].no_play_cnt);
+						tp->id[i].press_no_vibrate_flag, tp->id[i].release_no_vibrate_flag);
 				}
 				tp->id[i].no_play_cnt = 0;
 			} else if(AW8697_HAPTIC_PLAY_NULL == aw8697->haptic_audio.ctr.play) {
@@ -2042,14 +1976,6 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 							tp->id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
 							tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
 							tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-							if(i == AW8697_HAPTIC_TP_ID_MAX) {
-								tp->id[i].pt_info.status = AW8697_HAPTIC_TP_ST_RELEASE;
-								tp->id[i].pt_info.touch_flag = AW8697_HAPTIC_TP_TOUCH_INVAIL;
-								tp->id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
-								tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
-								//tp->id[i].press_no_vibrate_flag = 0;
-							}
 							if(tp->id[i].press_no_vibrate_flag == 0)
 								tp->id[i].press_no_vibrate_flag = 2;
 						} else {
@@ -2057,13 +1983,15 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 					} else {
 						tp->id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
 					}
-					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, no_play_cnt=%d\n",
+					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, release_no_vibrate_flag=%d\n",
 						__func__, __LINE__, i, tp->id[i].play_flag, tp->id[i].press_flag, tp->id[i].release_flag,
-						tp->id[i].press_no_vibrate_flag, tp->id[i].no_play_cnt);
+						tp->id[i].press_no_vibrate_flag, tp->id[i].release_no_vibrate_flag);
 				}
 				if(AW8697_HAPTIC_TP_RELEASE == tp->id[i].release_flag) {
 					/* tp release time > 3-continue-time play time*/
 					if(release_delay > tp->release_delay_max) {
+						tp->id[i].pt_info.x = 0;
+						tp->id[i].pt_info.y = 0;
 						tp->id[i].play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
 						tp->id[i].press_flag = AW8697_HAPTIC_TP_NULL;
 						tp->id[i].release_flag = AW8697_HAPTIC_TP_NULL;
@@ -2073,42 +2001,29 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 						tp->tp_ai_check_flag = 0;
 					} else {
 					}
-					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, no_play_cnt=%d\n",
+					pr_debug("%s: %d: id[%d]:play_flag=%d, press_flag=%d, release_flag=%d, press_no_vibrate_flag=%d, release_no_vibrate_flag=%d\n",
 						__func__, __LINE__, i, tp->id[i].play_flag, tp->id[i].press_flag, tp->id[i].release_flag,
-						tp->id[i].press_no_vibrate_flag, tp->id[i].no_play_cnt);
+						tp->id[i].press_no_vibrate_flag, tp->id[i].release_no_vibrate_flag);
 				}
 			} else {
 			}
 		}
 
-		/* get tz high num */
-		tz_high_num = 0;
-		tz_num = 0;
-		list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
-			tz_num ++;
-			if(p_tmp->level == AW8697_HAPTIC_TZ_LEVEL_HIGH) {
-				tz_high_num ++;
-			}
-		}
-
 		/* adjust tp play enable */
 		tp->play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
-		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 			if(AW8697_HAPTIC_TP_PLAY_ENABLE == tp->id[i].play_flag) {
 				tp_touch_play_flag = AW8697_HAPTIC_TP_PLAY_ENABLE;
 				list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
 					if (aw8697_haptic_audio_tp_list_match(&(tp->id[i].pt_info), p_tmp)) {
 						tp->play_flag = AW8697_HAPTIC_TP_PLAY_ENABLE;
 						touch_vibrator_id = i;
-						pr_debug("%s: tp input point[%d, %04d, %04d] is in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
+						pr_info("%s: tp input point[%d, %04d, %04d] is in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
 							__func__, i, tp->id[i].pt_info.x, tp->id[i].pt_info.y,
 							p_tmp->level, p_tmp->x, p_tmp->y, p_tmp->w, p_tmp->h);
 						break;
 					}
 				}
-			}
-			if(tp->play_flag == AW8697_HAPTIC_TP_PLAY_ENABLE) {
-				break;
 			}
 		}
 		if(tp->play_flag) {
@@ -2117,7 +2032,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 
 		/* haptic no match with all tp and tz, find a touch vail point, or used 0 */
 		if(AW8697_HAPTIC_TP_PLAY_NULL == tp->play_flag) {
-			for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+			for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 				if(AW8697_HAPTIC_TP_PLAY_ENABLE == tp->id[i].play_flag) {
 					if (tz_high_num == 1) {
 						list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
@@ -2164,7 +2079,7 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 						} else {
 							p_tmp->level = AW8697_HAPTIC_TZ_LEVEL_LOW;
 						}
-						pr_debug("%s: ai trust zone[%d, %04d, %04d, %04d, %04d] cnt=%d, touch match vibrator\n",
+						pr_info("%s: ai trust zone[%d, %04d, %04d, %04d, %04d] cnt=%d, touch match vibrator\n",
 							__func__, p_tmp->level, p_tmp->x, p_tmp->y,
 							p_tmp->w, p_tmp->h, p_tmp->cnt);
 					}
@@ -2196,10 +2111,18 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 			}
 		}
 
-		/* start/stop ai scan */
+		/* get tz high num and start/stop ai scan */
+		tz_high_num = 0;
+		tz_num = 0;
+		list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
+			tz_num ++;
+			if(p_tmp->level == AW8697_HAPTIC_TZ_LEVEL_HIGH) {
+				tz_high_num ++;
+			}
+		}
 		uevent_report_flag = haptic_audio->uevent_report_flag;
 		if (haptic_audio->tz_high_num != tz_high_num) {
-			pr_debug("%s: haptic_audio->tz_high_num =%d, tz_high_num =%d\n", __func__, haptic_audio->tz_high_num, tz_high_num);
+			pr_info("%s: haptic_audio->tz_high_num =%d, tz_high_num =%d\n", __func__, haptic_audio->tz_high_num, tz_high_num);
 			if(tz_high_num == 2) {
 				uevent_report_flag = 0;
 			} else {
@@ -2219,16 +2142,14 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 			}
 
 		}
-		pr_debug("%s: tp_ai_match_flag=%d, tp_ai_check_flag=%d, tz_high_num=%d, tp_touch_play_flag=%d, tp->last_play_flag=%d, hap_cnt_outside_tz=%d\n",
+		pr_debug("%s: tp_ai_match_flag=%d, tp_ai_check_flag=%d, tz_high_num=%d, tp_touch_play_flag=%d, hap_cnt_outside_tz=%d\n",
                        __func__, tp->tp_ai_match_flag, tp->tp_ai_check_flag,
-                       haptic_audio->tz_high_num, tp_touch_play_flag, tp->last_play_flag, haptic_audio->hap_cnt_outside_tz);
+                       haptic_audio->tz_high_num, tp_touch_play_flag, haptic_audio->hap_cnt_outside_tz);
 
-		/* restart ai scan when tz_high_num=2 */
 		if ((haptic_audio->tz_high_num == 2) &&
 			(tp->tp_ai_match_flag == 0) &&
 			(tp->tp_ai_check_flag == 1)) {
-			if ((AW8697_HAPTIC_TP_PLAY_ENABLE == tp_touch_play_flag) &&
-				(AW8697_HAPTIC_TP_PLAY_NULL == tp->last_play_flag)) {
+			if (AW8697_HAPTIC_TP_PLAY_ENABLE == tp_touch_play_flag) {
 				haptic_audio->hap_cnt_outside_tz ++;
 				if (haptic_audio->hap_cnt_outside_tz >= haptic_audio->hap_cnt_max_outside_tz) {
 					uevent_report_flag = 1;
@@ -2249,7 +2170,6 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 			}
 		}
 
-		/* ai scan uevent report */
 		if(haptic_audio->uevent_report_flag != uevent_report_flag) {
 			if (uevent_report_flag == 1) {
 				aw8697_haptic_audio_uevent_report_scan(aw8697, true);
@@ -2259,41 +2179,41 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 			haptic_audio->uevent_report_flag = uevent_report_flag;
 		}
 
-		/* haptic play with tz num */
+		/* haptic play with tz high num */
 		if (AW8697_HAPTIC_TP_PLAY_ENABLE == tp_touch_play_flag) {
 			touch_vibrator_flag = 0;
 			if (tz_num == 0) {
 				touch_vibrator_flag = 1;
 			} else if (tz_num == 1) {
 				list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
-					if(p_tmp->x < aw8697->haptic_audio.tp_size.x/2) {
-						if(tp->id[touch_vibrator_id].pt_info.x < aw8697->haptic_audio.tp_size.x/2) {
-							if (aw8697_haptic_audio_tp_list_match(&(tp->id[touch_vibrator_id].pt_info), p_tmp)) {
+						if(p_tmp->x < aw8697->haptic_audio.tp_size.x/2) {
+							if(tp->id[touch_vibrator_id].pt_info.x < aw8697->haptic_audio.tp_size.x/2) {
+								if (aw8697_haptic_audio_tp_list_match(&(tp->id[touch_vibrator_id].pt_info), p_tmp)) {
 								if(AW8697_HAPTIC_TP_PLAY_ENABLE == tp->play_flag) {
-									touch_vibrator_flag = 3;
-									break;
+										touch_vibrator_flag = 3;
+										break;
+									}
+								} else {
 								}
 							} else {
+								touch_vibrator_flag = 4;
+								break;
 							}
 						} else {
-							touch_vibrator_flag = 4;
-							break;
-						}
-					} else {
-						if(tp->id[touch_vibrator_id].pt_info.x > aw8697->haptic_audio.tp_size.x/2) {
-							if (aw8697_haptic_audio_tp_list_match(&(tp->id[touch_vibrator_id].pt_info), p_tmp)) {
+							if(tp->id[touch_vibrator_id].pt_info.x > aw8697->haptic_audio.tp_size.x/2) {
+								if (aw8697_haptic_audio_tp_list_match(&(tp->id[touch_vibrator_id].pt_info), p_tmp)) {
 								if(AW8697_HAPTIC_TP_PLAY_ENABLE == tp->play_flag) {
-									touch_vibrator_flag = 5;
-									break;
+										touch_vibrator_flag = 5;
+										break;
+									}
+								} else {
 								}
 							} else {
+								touch_vibrator_flag = 6;
+								break;
 							}
-						} else {
-							touch_vibrator_flag = 6;
-							break;
 						}
 					}
-				}
 			} else if (tz_num == 2) {
 				list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
 					if (aw8697_haptic_audio_tp_list_match(&(tp->id[touch_vibrator_id].pt_info), p_tmp)) {
@@ -2313,22 +2233,19 @@ static void aw8697_haptic_audio_work_routine(struct work_struct *work)
 			} else {
 				tp->play_flag = AW8697_HAPTIC_TP_PLAY_NULL;
 			}
-			pr_debug("%s: tz_num=%d, touch_vibrator_flag=%d\n", __func__, tz_num, touch_vibrator_flag);
+			pr_info("%s: tz_num=%d, touch_vibrator_flag=%d\n", __func__, tz_num, touch_vibrator_flag);
 		}
 
 		if(tp->play_flag) {
-			pr_debug("%s: tp.play_flag with ai tz =%d\n", __func__, tp->play_flag);
+			pr_info("%s: tp.play_flag with ai tz =%d\n", __func__, tp->play_flag);
 		}
 
-		if(AW8697_HAPTIC_PLAY_ENABLE == aw8697->haptic_audio.ctr.play) {
-			tp->last_play_flag = tp->play_flag;
-		}
 		/* clear all id tp flag */
-		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 			tp->id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
 		}
 	} else {
-		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+		for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
 			tp->id[i].tp_flag = AW8697_HAPTIC_TP_NULL;
 		}
 	}
@@ -2825,8 +2742,8 @@ static int aw8697_haptic_init(struct aw8697 *aw8697)
     aw8697->haptic_audio.tp.press_delay_min = 1;
     aw8697->haptic_audio.tp.press_delay_max = 500000;
     aw8697->haptic_audio.tp.release_delay_max = 600000;
-    aw8697->haptic_audio.tp.no_play_cnt_max = 230;
-    for(i=0; i<AW8697_HAPTIC_TP_ID_MAX+1; i++) {
+    aw8697->haptic_audio.tp.no_play_cnt_max = 15;
+    for(i=0; i<AW8697_HAPTIC_TP_ID_MAX; i++) {
         tp->id[i].pt_info.status = 0;
     }
 
@@ -3155,9 +3072,6 @@ static ssize_t aw8697_activate_mode_store(struct device *dev,
     unsigned int val = 0;
     int rc = 0;
 
-    if (!aw8697->ram_init)
-       return count;
-
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
@@ -3240,8 +3154,6 @@ static ssize_t aw8697_vmax_store(struct device *dev,
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
-    if (!aw8697->ram_init)
-       return count;
 
     pr_info("%s: value=%d\n", __FUNCTION__, val);
     mutex_lock(&aw8697->lock);
@@ -3281,8 +3193,7 @@ static ssize_t aw8697_gain_store(struct device *dev,
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0)
         return rc;
-    if (!aw8697->ram_init)
-       return count;
+
     pr_info("%s: value=%d\n", __FUNCTION__, val);
     mutex_lock(&aw8697->lock);
     aw8697->gain = val;
@@ -3367,9 +3278,6 @@ static ssize_t aw8697_seq_store(struct device *dev,
     struct aw8697 *aw8697 = container_of(cdev, struct aw8697, cdev);
 #endif
     unsigned int databuf[2] = {0, 0};
-
-    if (!aw8697->ram_init)
-       return count;
 
     if(2 == sscanf(buf, "%x %x", &databuf[0], &databuf[1])) {
         pr_info("%s: seq%d=0x%x\n", __FUNCTION__, databuf[0], databuf[1]);
@@ -3506,9 +3414,6 @@ static ssize_t aw8697_rtp_store(struct device *dev, struct device_attribute *att
     unsigned int val = 0;
     int rc = 0;
     int rtp_is_going_on = 0;
-
-    if (!aw8697->ram_init)
-       return count;
 
     rc = kstrtouint(buf, 0, &val);
     if (rc < 0) {
@@ -4441,19 +4346,6 @@ static ssize_t aw8697_haptic_audio_tp_input_store(struct device *dev, struct dev
 					__func__, tp_input.id, tp_input.x, tp_input.y,
 					p_tmp->level, p_tmp->x, p_tmp->y, p_tmp->w, p_tmp->h);
 				tp->id[tp_input.id].tp_ai_match_flag = 1;
-				do_gettimeofday(&tp->id[AW8697_HAPTIC_TP_ID_MAX].t_press);
-				tp->virtual_id = tp_input.id;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.id = tp_input.id;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.x = tp_input.x;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.y = tp_input.y;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.status = tp_input.status;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.touch_flag = AW8697_HAPTIC_TP_TOUCH_VAIL;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.touch_outside_tz_flag = AW8697_HAPTIC_TP_TOUCH_VAIL;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].tp_flag = AW8697_HAPTIC_TP_PRESS;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].press_flag = AW8697_HAPTIC_TP_PRESS;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].release_flag = AW8697_HAPTIC_TP_NULL;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].no_play_cnt = 0;
-				tp->id[AW8697_HAPTIC_TP_ID_MAX].press_no_vibrate_flag = 0;
 				break;
 			}
 		}
@@ -4479,26 +4371,6 @@ static ssize_t aw8697_haptic_audio_tp_input_store(struct device *dev, struct dev
 
 	if((AW8697_HAPTIC_TP_ST_RELEASE == tp_input.status) &&
 		(tp_input.status != tp->id[tp_input.id].pt_info.status)) {
-		list_for_each_entry(p_tmp, &(haptic_audio->list), list) {
-			if ((tp->id[tp_input.id].pt_info.x+AW8697_HAPTIC_AI_X_JITTER*p_tmp->w/AW8697_HAPTIC_AI_X_DFT_W > p_tmp->x) &&
-				(tp->id[tp_input.id].pt_info.x < p_tmp->x+p_tmp->w+AW8697_HAPTIC_AI_X_JITTER*p_tmp->w/AW8697_HAPTIC_AI_X_DFT_W) &&
-				(tp->id[tp_input.id].pt_info.y+AW8697_HAPTIC_AI_Y_JITTER*p_tmp->h/AW8697_HAPTIC_AI_Y_DFT_H > p_tmp->y) &&
-				(tp->id[tp_input.id].pt_info.y < p_tmp->y+p_tmp->h+AW8697_HAPTIC_AI_Y_JITTER*p_tmp->h/AW8697_HAPTIC_AI_Y_DFT_H)) {
-				pr_info("%s: tp input point[%d, %04d, %04d] up is in the ai trust zone[%d, %04d, %04d, %04d, %04d]\n",
-					__func__, tp->id[tp_input.id].pt_info.id, tp->id[tp_input.id].pt_info.x, tp->id[tp_input.id].pt_info.y,
-					p_tmp->level, p_tmp->x, p_tmp->y, p_tmp->w, p_tmp->h);
-				if(tp->virtual_id == tp_input.id) {
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.id = tp->id[tp_input.id].pt_info.id;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.x = tp->id[tp_input.id].pt_info.x;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.y = tp->id[tp_input.id].pt_info.y;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].pt_info.status = tp_input.status;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].tp_flag = AW8697_HAPTIC_TP_RELEASE;
-					tp->id[AW8697_HAPTIC_TP_ID_MAX].release_flag = AW8697_HAPTIC_TP_RELEASE;
-					do_gettimeofday(&tp->id[AW8697_HAPTIC_TP_ID_MAX].t_release);
-				}
-				break;
-			}
-		}
 		tp->id[tp_input.id].pt_info.status = tp_input.status;
 		tp->id[tp_input.id].tp_flag = AW8697_HAPTIC_TP_RELEASE;
 		tp->id[tp_input.id].release_flag = AW8697_HAPTIC_TP_RELEASE;
@@ -4509,7 +4381,7 @@ static ssize_t aw8697_haptic_audio_tp_input_store(struct device *dev, struct dev
 		pr_debug("%s: tp_press_release: status=%d, flag=%d",
 			__func__, tp->id[tp_input.id].pt_info.status, tp->id[tp_input.id].tp_flag);
 	}
-	mutex_unlock(&aw8697->haptic_audio.lock);
+    mutex_unlock(&aw8697->haptic_audio.lock);
 
 
 	return count;
@@ -4845,7 +4717,6 @@ static ssize_t aw8697_haptic_ram_test_store(struct device *dev, struct device_at
 		pr_err("%s: Error allocating memory\n", __func__);
 		return count;
 	}
-	mutex_lock(&aw8697->lock);
 	aw8697_ramtest->len = tmp_len;
 	if (val == 1){
 			/* RAMINIT Enable */
@@ -4899,8 +4770,6 @@ static ssize_t aw8697_haptic_ram_test_store(struct device *dev, struct device_at
 	kfree(pbuf);
 	pbuf = NULL;
 	aw8697->ram_test_result = !aw8697->ram_test_flag_0 && !aw8697->ram_test_flag_1;
-	aw8697_ram_update(aw8697);
-	mutex_unlock(&aw8697->lock);
 	pr_info("ram_test_flag_0:%d,ram_test_flag_1:%d\n",
 			aw8697->ram_test_flag_0, aw8697->ram_test_flag_1);
 	pr_info("%s exit\n", __func__);
@@ -4916,6 +4785,7 @@ static ssize_t aw8697_haptic_ram_test_show(struct device *dev, struct device_att
 
 	len += snprintf(buf + len, PAGE_SIZE - len,
 					"%d\n", aw8697->ram_test_result);
+	aw8697_ram_update(aw8697);
 	return len;
 }
 

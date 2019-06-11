@@ -251,6 +251,7 @@ void usb_sw_gpio_set(int value)
 		gpio_direction_output(fastchg_di->usb_sw_2_gpio, 0);
 	}
 	fastchg_di->fast_chg_allow = value;
+	/* david@bsp add log */
 	pr_info("get usb_sw_gpio=%d&%d\n"
 		, gpio_get_value(fastchg_di->usb_sw_1_gpio)
 		, gpio_get_value(fastchg_di->usb_sw_2_gpio));
@@ -271,6 +272,7 @@ static int set_property_on_smbcharger(
 		}
 	}
 	ret = power_supply_set_property(psy, prop, &value);
+	/* david@bsp modified */
 	if (ret)
 		return -EINVAL;
 
@@ -486,7 +488,7 @@ static void dashchg_fw_update(struct work_struct *work)
 		reset_mcu_and_request_irq(di);
 		__pm_relax(&di->fastchg_update_fireware_lock);
 		set_property_on_smbcharger(POWER_SUPPLY_PROP_SWITCH_DASH, true);
-		pr_info("FW check success\n");
+		pr_info("FW check success\n"); /* david@bsp add log */
 		return;
 	}
 	pr_info("start erasing data.......\n");

@@ -55,22 +55,6 @@ if TOUCHPANEL_SYNAPTICS
 source "drivers/input/touchscreen/oneplus_touchscreen/Synaptics/Kconfig"
 endif
 
-if TOUCHPANEL_GOODIX
-source "drivers/input/touchscreen/oneplus_touchscreen/Goodix/Kconfig"
-endif
-
-if TOUCHPANEL_FOCAL
-source "drivers/input/touchscreen/oneplus_touchscreen/Focal/Kconfig"
-endif
-
-if TOUCHPANEL_NOVA
-source "drivers/input/touchscreen/oneplus_touchscreen/Novatek/Kconfig"
-endif
-
-if TOUCHPANEL_HIMAX
-source "drivers/input/touchscreen/oneplus_touchscreen/Himax/Kconfig"
-endif
-
 if TOUCHPANEL_SAMSUNG
 source "drivers/input/touchscreen/oneplus_touchscreen/Samsung/Kconfig"
 endif

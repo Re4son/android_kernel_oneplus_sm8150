@@ -215,7 +215,7 @@ static int proc_root_link(struct dentry *dentry, struct path *path)
 }
 
 static ssize_t get_mm_cmdline(struct mm_struct *mm, char __user *buf,
-		size_t count, loff_t *ppos)
+			      size_t count, loff_t *ppos)
 {
 	unsigned long arg_start, arg_end, env_start, env_end;
 	unsigned long pos, len;
@@ -241,7 +241,6 @@ static ssize_t get_mm_cmdline(struct mm_struct *mm, char __user *buf,
 	 * into the environment section. But only do that if
 	 * the environment area is contiguous to the arguments.
 	 */
-
 	if (env_start != arg_end || env_start >= env_end)
 		env_start = env_end = arg_end;
 
@@ -308,7 +307,7 @@ static ssize_t get_mm_cmdline(struct mm_struct *mm, char __user *buf,
 }
 
 static ssize_t get_task_cmdline(struct task_struct *tsk, char __user *buf,
-		size_t count, loff_t *pos)
+				size_t count, loff_t *pos)
 {
 	struct mm_struct *mm;
 	ssize_t ret;
@@ -323,7 +322,7 @@ static ssize_t get_task_cmdline(struct task_struct *tsk, char __user *buf,
 }
 
 static ssize_t proc_pid_cmdline_read(struct file *file, char __user *buf,
-		size_t count, loff_t *pos)
+				     size_t count, loff_t *pos)
 {
 	struct task_struct *tsk;
 	ssize_t ret;

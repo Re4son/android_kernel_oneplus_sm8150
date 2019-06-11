@@ -563,7 +563,7 @@ static int _sde_connector_update_bl_scale(struct sde_connector *c_conn)
 
 	return rc;
 }
-
+//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 extern bool sde_crtc_get_fingerprint_mode(struct drm_crtc_state *crtc_state);
 extern bool sde_crtc_get_fingerprint_pressed(struct drm_crtc_state *crtc_state);
 extern int dsi_display_set_hbm_mode(struct drm_connector *connector, int level);
@@ -622,6 +622,7 @@ extern bool HBM_flag ;
 extern int oneplus_dim_status;
 extern bool aod_real_flag;
 extern bool finger_type;
+
 
 static int _sde_connector_update_hbm(struct sde_connector *c_conn)
 {
@@ -843,6 +844,7 @@ int sde_connector_pre_kickoff(struct drm_connector *connector)
 		SDE_EVT32(connector->base.id, SDE_EVTLOG_ERROR);
 		goto end;
 	}
+	/*xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint*/
 	rc = _sde_connector_update_hbm(c_conn);
 	if (rc) {
 		SDE_EVT32(connector->base.id, SDE_EVTLOG_ERROR);
@@ -2507,7 +2509,7 @@ struct drm_connector *sde_connector_init(struct drm_device *dev,
 	msm_property_install_range(&c_conn->property_info, "ad_bl_scale",
 		0x0, 0, MAX_AD_BL_SCALE_LEVEL, MAX_AD_BL_SCALE_LEVEL,
 		CONNECTOR_PROP_AD_BL_SCALE);
-
+	//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 	msm_property_install_range(&c_conn->property_info,"CONNECTOR_CUST",
 			0x0, 0, INT_MAX, 0, CONNECTOR_PROP_CUSTOM);
 

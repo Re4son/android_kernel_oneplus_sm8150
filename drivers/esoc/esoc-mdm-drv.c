@@ -346,7 +346,7 @@ static int mdm_handle_boot_fail(struct esoc_clink *esoc_clink, u8 *pon_trial)
 		break;
 	case BOOT_FAIL_ACTION_PANIC:
 		esoc_mdm_log("Calling panic!!\n");
-		if (get_second_board_absent() == 0)
+		if (get_second_board_absent() == 0 && oem_get_download_mode())
 		  panic("Panic requested on external modem boot failure\n");
 		else
 		  pr_err("Panic requested on external modem boot failure\n");

@@ -1,17 +1,3 @@
-/***************************************************
- * File:touch_interfaces.c
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             Touch interface
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -29,7 +15,7 @@
 
 #define TPD_DEVICE "touch_interface"
 #define TPD_INFO(a, arg...)  pr_err("[TP]"TPD_DEVICE ": " a, ##arg)
-#define FIX_I2C_LENGTH 256
+
 static bool register_is_16bit = 0;
 
 /**
@@ -79,88 +65,47 @@ int touch_i2c_continue_read(struct i2c_client* client, unsigned short length, un
  */
 int touch_i2c_read_block(struct i2c_client* client, u16 addr, unsigned short length, unsigned char *data)
 {
-	int retval;
-	unsigned char retry;
-	static unsigned char *buffer = NULL;
-	static unsigned int read_buf_size = 0;
-	static unsigned char *read_buf = NULL;
-	struct i2c_msg msg[2];
+    int retval;
+    unsigned char retry;
+    //unsigned char buffer[2] = {(addr >> 8) & 0xff, addr & 0xff};
+	unsigned char *buffer;
+    struct i2c_msg msg[2];
+	buffer = (unsigned char *)kzalloc(2,GFP_KERNEL);
+	
+    msg[0].addr = client->addr;
+    msg[0].flags = 0;
+    msg[0].buf = buffer;
 
-	buffer = kzalloc(2, GFP_KERNEL | GFP_DMA);
-	if (length > FIX_I2C_LENGTH) {
-		if (read_buf_size < length) {
-			if (read_buf) {
-				kfree(read_buf);
-				TPD_INFO("read block_1,free onec\n");
-			}
-			read_buf =kzalloc(length, GFP_KERNEL);
-			if(!read_buf) {
-				read_buf_size = 0;
-				TPD_INFO("read block kzaloc faied\n");
-				return -ENOMEM;
-			}
-			read_buf_size = length;
-		} else {
-			memset(read_buf, 0 ,length);
-		}
-	} else {
-		if (read_buf_size > FIX_I2C_LENGTH) {
-			kfree(read_buf);
-			read_buf = kzalloc(FIX_I2C_LENGTH,
-				GFP_KERNEL | GFP_DMA);
-			if(!read_buf) {
-				read_buf_size = 0;
-				TPD_INFO("read block kzaloc faied\n");
-				return -ENOMEM;
-			}
-			read_buf_size = FIX_I2C_LENGTH;
-		} else {
-			if(!read_buf) {
-				read_buf = kzalloc(FIX_I2C_LENGTH,
-						GFP_KERNEL | GFP_DMA);
-				if (!read_buf) {
-					read_buf_size = 0;
-					TPD_INFO("read block kzaloc faied\n");
-					return -ENOMEM;
-				}
-				read_buf_size = FIX_I2C_LENGTH;
-			} else {
-				memset(read_buf, 0, length);
-			}
-		}
-	}
-	msg[0].addr = client->addr;
-	msg[0].flags = 0;
-	msg[0].buf = buffer;
+    if (!register_is_16bit)  // if register is 8bit
+    {
+        msg[0].len = 1;
+        msg[0].buf[0] = addr & 0xff;
+    }
+    else
+    {
+        msg[0].len = 2;
+        msg[0].buf[0] = addr >> 8 & 0xff;
+        msg[0].buf[1] = addr * 0xff;
+    }
 
-	if (!register_is_16bit) {  // if register is 8bit
-		msg[0].len = 1;
-		msg[0].buf[0] = addr & 0xff;
-	} else {
-		msg[0].len = 2;
-		msg[0].buf[0] = addr >> 8 & 0xff;
-		msg[0].buf[1] = addr * 0xff;
-	}
+    msg[1].addr = client->addr;
+    msg[1].flags = I2C_M_RD;
+    msg[1].len = length;
+    msg[1].buf = data;
 
-	msg[1].addr = client->addr;
-	msg[1].flags = I2C_M_RD;
-	msg[1].len = length;
-	msg[1].buf = read_buf;
-
-	for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
-		if (i2c_transfer(client->adapter, msg, 2) == 2) {
-			retval = length;
-			break;
-		}
-		msleep(20);
-	}
-	if (retry == MAX_I2C_RETRY_TIME) {
-		dev_err(&client->dev, "%s: I2C read over retry limit\n", __func__);
-		retval = -EIO;
-	}
-	memcpy(data, read_buf,length);
+    for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
+        if (i2c_transfer(client->adapter, msg, 2) == 2) {
+            retval = length;
+            break;
+        }
+        msleep(20);
+    }
+    if (retry == MAX_I2C_RETRY_TIME) {
+        dev_err(&client->dev, "%s: I2C read over retry limit\n", __func__);
+        retval = -EIO;
+    }
 	kfree(buffer);
-	return retval;
+    return retval;
 }
 
 /**
@@ -261,18 +206,16 @@ int touch_i2c_write_block(struct i2c_client* client, u16 addr, unsigned short le
 int touch_i2c_read_byte(struct i2c_client* client, unsigned short addr)
 {
     int retval = 0;
-   // unsigned char buf[2] = {0};
-	unsigned char *buf;
-	buf = (unsigned char *)kzalloc(2,GFP_KERNEL);
+    unsigned char buf[2] = {0};
+
     if (!client)    {
         dump_stack();
-	kfree(buf);
         return -1;
     }
     retval = touch_i2c_read_block(client, addr, 1, buf);
     if (retval >= 0)
         retval = buf[0] & 0xff;
-	kfree(buf);
+
     return retval;
 }
 
@@ -315,19 +258,16 @@ int touch_i2c_write_byte(struct i2c_client* client, unsigned short addr, unsigne
 int touch_i2c_read_word(struct i2c_client* client, unsigned short addr)
 {
     int retval;
-   // unsigned char buf[2] = {0};
-	unsigned char *buf;
+    unsigned char buf[2] = {0};
 
-	buf = (unsigned char *)kzalloc(2, GFP_KERNEL);
     if (!client)    {
         dump_stack();
-	kfree(buf);
         return -EINVAL;
     }
     retval = touch_i2c_read_block(client, addr, 2, buf);
     if (retval >= 0)
         retval = buf[1] << 8 | buf[0];
-	kfree(buf);
+
     return retval;
 }
 
@@ -371,67 +311,66 @@ int touch_i2c_write_word(struct i2c_client* client, unsigned short addr, unsigne
  */
 int touch_i2c_read(struct i2c_client *client, char *writebuf, int writelen, char *readbuf, int readlen)
 {
-	int retval = 0;
-	int retry = 0;
+    int retval = 0;
+    int retry = 0;
 
-	if (client == NULL) {
-		TPD_INFO("%s: i2c_client == NULL!\n", __func__);
-		return -EINVAL;
-	}
+    if (client == NULL) {
+        TPD_INFO("%s: i2c_client == NULL!\n", __func__);
+        return -1;
+    }
 
-	if (readlen > 0) {
-		if (writelen > 0) {
-			struct i2c_msg msgs[] = {
-				{
-					.addr = client->addr,
-					.flags = 0,
-					.len = writelen,
-					.buf = writebuf,
-				},
-				{
-					.addr = client->addr,
-					.flags = I2C_M_RD,
-					.len = readlen,
-					.buf = readbuf,
-				},
-			};
+    if (readlen > 0) {
+        if (writelen > 0) {
+            struct i2c_msg msgs[] =
+            {
+                {
+                    .addr = client->addr,
+                    .flags = 0,
+                    .len = writelen,
+                    .buf = writebuf,
+                },
+                {
+                    .addr = client->addr,
+                    .flags = I2C_M_RD,
+                    .len = readlen,
+                    .buf = readbuf,
+                },
+            };
 
-			for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
-				if (i2c_transfer(client->adapter,
-							msgs, 2) == 2) {
-					retval = 2;
-					break;
-				}
-				msleep(20);
-			}
-		} else {
-			struct i2c_msg msgs[] = {
-				{
-					.addr = client->addr,
-					.flags = I2C_M_RD,
-					.len = readlen,
-					.buf = readbuf,
-				},
-			};
+            for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
+                if (i2c_transfer(client->adapter, msgs, 2) == 2) {
+                    retval = 2;
+                    break;
+                }
+                msleep(20);
+            }
+        } else {
+            struct i2c_msg msgs[] =
+            {
+                {
+                    .addr = client->addr,
+                    .flags = I2C_M_RD,
+                    .len = readlen,
+                    .buf = readbuf,
+                },
+            };
 
-			for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
-				if (i2c_transfer(client->adapter,
-						msgs, 1) == 1) {
-					retval = 1;
-					break;
-				}
-				msleep(20);
-			}
-		}
+            for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
+                if (i2c_transfer(client->adapter, msgs, 1) == 1) {
+                    retval = 1;
+                    break;
+                }
+                msleep(20);
+            }
+        }
 
-		if (retry == MAX_I2C_RETRY_TIME) {
-			TPD_INFO("%s: i2c_transfer(read) over retry limit\n",
-				__func__);
-			retval = -EIO;
-		}
-	}
+        if (retry == MAX_I2C_RETRY_TIME) {
+            TPD_INFO("%s: i2c_transfer(read) over retry limit\n", __func__);
+            retval = -EIO;
+        }
+    }
 
-	return retval;
+    return retval;
 }
 
 /**
@@ -445,41 +384,39 @@ int touch_i2c_read(struct i2c_client *client, char *writebuf, int writelen, char
  */
 int touch_i2c_write(struct i2c_client *client, char *writebuf, int writelen)
 {
-	int retval = 0;
-	int retry = 0;
+    int retval = 0;
+    int retry = 0;
 
-	if (client == NULL) {
-		TPD_INFO("%s: i2c_client == NULL!", __func__);
-		return -EINVAL;
-	}
+    if (client == NULL) {
+        TPD_INFO("%s: i2c_client == NULL!", __func__);
+        return -1;
+    }
 
-	if (writelen > 0) {
-		struct i2c_msg msgs[] = {
-			{
-				.addr = client->addr,
-				.flags = 0,
-				.len = writelen,
-				.buf = writebuf,
-			},
-		};
+    if (writelen > 0) {
+        struct i2c_msg msgs[] =
+        {
+            {
+                .addr = client->addr,
+                .flags = 0,
+                .len = writelen,
+                .buf = writebuf,
+            },
+        };
 
-		for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
-			if (i2c_transfer(client->adapter,
-					msgs, 1) == 1) {
-				retval = 1;
-				break;
-			}
-			msleep(20);
-		}
+        for (retry = 0; retry < MAX_I2C_RETRY_TIME; retry++) {
+            if (i2c_transfer(client->adapter, msgs, 1) == 1) {
+                retval = 1;
+                break;
+            }
+            msleep(20);
+        }
+        if (retry == MAX_I2C_RETRY_TIME) {
+            TPD_INFO("%s: i2c_transfer(write) over retry limit\n", __func__);
+            retval = -EIO;
+        }
+    }
 
-		if (retry == MAX_I2C_RETRY_TIME) {
-			TPD_INFO("%s: i2c_transfer(write) over retry limit\n",
-					__func__);
-			retval = -EIO;
-		}
-	}
-
-	return retval;
+    return retval;
 }
 
 

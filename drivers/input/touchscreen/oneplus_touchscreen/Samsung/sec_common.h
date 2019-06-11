@@ -1,17 +1,15 @@
-/***************************************************
- * File:sec_common.h
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             sec common driver
- * Version:1.0:
- * Date created:2018/01/22
- * Author: Cong.Dai@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : sec_common.h 
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by LSI
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SEC_H
 #define SEC_H
 

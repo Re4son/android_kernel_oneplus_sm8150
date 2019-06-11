@@ -352,6 +352,7 @@ bool is_input_present(struct fg_dev *fg)
 	return is_usb_present(fg) || is_dc_present(fg);
 }
 
+/* @bsp, 2018/07/13 set Ibat 500mA by default */
 void fg_notify_charger(struct fg_dev *chip)
 {
 	union power_supply_propval prop = {0, };

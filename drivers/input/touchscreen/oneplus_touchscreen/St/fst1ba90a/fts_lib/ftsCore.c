@@ -1,21 +1,3 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : ftsCore.c
- * Description: Source file for ST fst1ba90a driver lib
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
-
-/*!
-  * \file ftsCore.c
-  * \brief Contains the implementation of the Core functions
-  */
-
 #include <linux/spinlock.h>
 #include <linux/delay.h>
 #include <linux/slab.h>

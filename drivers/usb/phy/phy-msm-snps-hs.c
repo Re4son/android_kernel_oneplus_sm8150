@@ -433,6 +433,12 @@ static int msm_hsphy_init(struct usb_phy *uphy)
 			TXVREFTUNE0_MASK, val);
 	}
 
+	/* add to tune USB 2.0 eye diagram */
+	/* set a default value to guarantee performance */
+/*	writel_relaxed(0xCD,
+			phy->base + USB2PHY_USB_PHY_PARAMETER_OVERRIDE_X1);
+*/
+	/* write by interface if node has value */
 	if (USB2_phy_tune1) {
 		pr_err("%s(): (modparam) USB2_phy_tune1 val:0x%02x\n",
 						__func__, USB2_phy_tune1);

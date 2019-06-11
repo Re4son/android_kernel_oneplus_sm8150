@@ -1,17 +1,3 @@
-/***************************************************
- * File:synaptics_touch_key.c
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             synaptics s1302 touch key driver
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
 #include <linux/of_gpio.h>
 #include <linux/irq.h>
 #include <linux/i2c.h>
@@ -137,7 +123,7 @@ static int F54_ANALOG_DATA_BASE;//0x00
 
 int KEY_FW;
 static struct manufacture_info touch_key_info;
-extern void input_report_key_oppo(struct input_dev *dev, unsigned int code, int value);
+extern void input_report_key_reduce(struct input_dev *dev, unsigned int code, int value);
 /*------------------------------------------Fuction Declare----------------------------------------------*/
 static int synaptics_ts_resume(struct device *dev);
 static int synaptics_ts_suspend(struct device *dev);
@@ -747,12 +733,12 @@ static void int_key(struct synaptics_ts_data *ts)
         case 0: //up
             if (ts->pre_btn_state == 1)
             {
-                input_report_key_oppo(ts->input_dev, KEY_MENU, 0);
+                input_report_key_reduce(ts->input_dev, KEY_MENU, 0);
                 input_sync(ts->input_dev);
             }
             else if (ts->pre_btn_state == 2)
             {
-                input_report_key_oppo(ts->input_dev, KEY_BACK, 0);
+                input_report_key_reduce(ts->input_dev, KEY_BACK, 0);
                 input_sync(ts->input_dev);
             }
             ts->pre_btn_state = 0;
@@ -763,7 +749,7 @@ static void int_key(struct synaptics_ts_data *ts)
 
         case 1: //down
             ts->pre_btn_state = 0x01;
-            input_report_key_oppo(ts->input_dev, KEY_MENU, 1);
+            input_report_key_reduce(ts->input_dev, KEY_MENU, 1);
             input_sync(ts->input_dev);
 #ifdef LCD_TRIGGER_KEY_FORCE_CAL
             key_press_all_the_time = 1;
@@ -771,7 +757,7 @@ static void int_key(struct synaptics_ts_data *ts)
             break;
         case 2: //down
             ts->pre_btn_state = 0x02;
-            input_report_key_oppo(ts->input_dev, KEY_BACK, 1);
+            input_report_key_reduce(ts->input_dev, KEY_BACK, 1);
             input_sync(ts->input_dev);
 #ifdef LCD_TRIGGER_KEY_FORCE_CAL
             key_press_all_the_time = 1;
@@ -1549,13 +1535,13 @@ static const struct file_operations tp_baseline_test_proc_fops =
     .owner = THIS_MODULE,
 };
 
-static const struct file_operations oppo_tp_delta_data_proc_fops =
+static const struct file_operations tp_delta_data_proc_fops =
 {
     .read = tp_delta_show,
     .owner = THIS_MODULE,
 };
 
-static const struct file_operations oppo_tp_baseline_image_proc_fops =
+static const struct file_operations tp_baseline_image_proc_fops =
 {
     .read = tp_baseline_show,
     .owner = THIS_MODULE,
@@ -1572,12 +1558,12 @@ static int synaptics_s1302_proc(void)
     proc_entry = proc_create_data("key_rep", 0666, procdir, &proc_reverse_key, NULL);
     proc_entry = proc_create_data("radd", 0666, procdir, &proc_radd, NULL);
     proc_entry = proc_create_data("reset", 0666, procdir, &proc_reset, NULL);
-    proc_entry = proc_create_data("oppo_tp_debug", 0666, procdir, &proc_debug, NULL);
+    proc_entry = proc_create_data("tp_debug", 0666, procdir, &proc_debug, NULL);
 
     //guomingqiang@phone.bsp 2015-12-17 add for touch key debug node
     proc_entry = proc_create_data("baseline_test", 0666, procdir, &tp_baseline_test_proc_fops, NULL);
-    proc_entry = proc_create_data("oppo_tp_delta_data", 0644, procdir, &oppo_tp_delta_data_proc_fops, NULL);
-    proc_entry = proc_create_data("oppo_tp_baseline_image", 0644, procdir, &oppo_tp_baseline_image_proc_fops, NULL);
+    proc_entry = proc_create_data("tp_delta_data", 0644, procdir, &tp_delta_data_proc_fops, NULL);
+    proc_entry = proc_create_data("tp_baseline_image", 0644, procdir, &tp_baseline_image_proc_fops, NULL);
     //guomingqiang@phone.bsp 2015-12-17 add for touch key debug node end
 
     TPD_INFO("create nodes is successe!\n");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -75,7 +75,7 @@ static struct kobject dload_kobj;
 #endif
 
 static int in_panic;
-static int dload_type = SCM_DLOAD_MINIDUMP;
+static int dload_type = SCM_DLOAD_FULLDUMP;
 static void *dload_mode_addr;
 static bool dload_mode_enabled;
 static void *emergency_dload_mode_addr;
@@ -204,6 +204,11 @@ static int dload_set(const char *val, const struct kernel_param *kp)
 
 	int old_val = download_mode;
 
+	if (!download_mode) {
+		pr_err("Error: SDI dynamic enablement is not supported\n");
+		return -EINVAL;
+	}
+
 	ret = param_set_int(val, kp);
 
 	if (ret)
@@ -216,6 +221,9 @@ static int dload_set(const char *val, const struct kernel_param *kp)
 	}
 
 	set_dload_mode(download_mode);
+
+	if (!download_mode)
+		scm_disable_sdi();
 
 	return 0;
 }

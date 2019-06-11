@@ -679,7 +679,6 @@ static ssize_t native_display_customer_srgb_mode_show(struct device *dev,
 	return ret;
 }
 
-
 static ssize_t native_display_wide_color_mode_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
@@ -973,6 +972,7 @@ static ssize_t panel_mismatch_show(struct device *dev,
 
 int oneplus_panel_alpha =0;
 int oneplus_force_screenfp = 0;
+
 extern int oneplus_get_panel_brightness_to_alpha(void);
 
 static ssize_t oneplus_display_get_dim_alpha(struct device *dev,

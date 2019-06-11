@@ -41,7 +41,7 @@
 #include "sde_power_handle.h"
 #include "sde_core_perf.h"
 #include "sde_trace.h"
-
+//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 #include <linux/msm_drm_notify.h>
 #include <linux/notifier.h>
 
@@ -967,6 +967,26 @@ static bool sde_crtc_mode_fixup(struct drm_crtc *crtc,
 	}
 
 	return true;
+}
+
+static int _sde_crtc_get_ctlstart_timeout(struct drm_crtc *crtc)
+{
+	struct drm_encoder *encoder;
+	int rc = 0;
+
+	if (!crtc || !crtc->dev)
+		return 0;
+
+	list_for_each_entry(encoder,
+			&crtc->dev->mode_config.encoder_list, head) {
+		if (encoder->crtc != crtc)
+			continue;
+
+		if (sde_encoder_get_intf_mode(encoder) == INTF_MODE_CMD)
+			rc += sde_encoder_get_ctlstart_timeout_state(encoder);
+	}
+
+	return rc;
 }
 
 static void _sde_crtc_setup_blend_cfg(struct sde_crtc_mixer *mixer,
@@ -2036,7 +2056,7 @@ static void _sde_crtc_blend_setup_mixer(struct drm_crtc *crtc,
 		for (i = 0; i < cstate->num_dim_layers; i++)
 			_sde_crtc_setup_dim_layer_cfg(crtc, sde_crtc,
 					mixer, &cstate->dim_layer[i]);
-
+	//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 	if (cstate->fingerprint_dim_layer)
 		{
 		_sde_crtc_setup_dim_layer_cfg(crtc, sde_crtc,
@@ -2970,7 +2990,7 @@ void sde_crtc_complete_commit(struct drm_crtc *crtc,
 	SDE_EVT32_VERBOSE(DRMID(crtc));
 
 	sde_core_perf_crtc_update(crtc, 0, false);
-
+	//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 	{
 		struct sde_crtc_state *old_cstate;
 		struct sde_crtc_state *cstate;
@@ -3099,6 +3119,7 @@ static void _sde_crtc_set_dim_layer_v1(struct sde_crtc_state *cstate,
 	}
 }
 
+
 bool sde_crtc_get_fingerprint_mode(struct drm_crtc_state *crtc_state)
 {
 	struct sde_crtc_state *cstate;
@@ -3196,6 +3217,7 @@ int oneplus_get_panel_brightness_to_alpha(void)
 
 	if (!display)
 		return 0;
+
 	if (oneplus_panel_alpha)
 		return oneplus_panel_alpha;
 		return brightness_to_alpha(display->panel->hbm_backlight);
@@ -3316,7 +3338,6 @@ int oneplus_aod_fod = 0;
 	dsi_connector = dsi_display->drm_conn;
 	mode_config = &drm_dev->mode_config;
 	sscanf(buf, "%du", &dim_status);
-	pr_err("notify dim %d\n", dim_status);
 
 	if(dsi_display->panel->aod_status==0 && (dim_status == 2)){
 		pr_err("fp set it in normal status\n");
@@ -3336,6 +3357,7 @@ int oneplus_aod_fod = 0;
     if (dim_status == oneplus_dim_status)
 		return count;
 	oneplus_dim_status = dim_status;
+    pr_err("notify dim %d,aod = %d press= %d aod_hide =%d\n", oneplus_dim_status,dsi_display->panel->aod_status,oneplus_onscreenfp_status,aod_layer_hide);
 	drm_modeset_lock_all(drm_dev);
 
 	state = drm_atomic_state_alloc(drm_dev);
@@ -3990,7 +4012,13 @@ static void sde_crtc_atomic_begin(struct drm_crtc *crtc,
 	if (unlikely(!sde_crtc->num_mixers))
 		goto end;
 
-	_sde_crtc_blend_setup(crtc, old_state, true);
+	if (_sde_crtc_get_ctlstart_timeout(crtc)) {
+		_sde_crtc_blend_setup(crtc, old_state, false);
+		SDE_ERROR("border fill only commit after ctlstart timeout\n");
+	} else {
+		_sde_crtc_blend_setup(crtc, old_state, true);
+	}
+
 	_sde_crtc_dest_scaler_setup(crtc);
 
 	/* cancel the idle notify delayed work */
@@ -5458,8 +5486,9 @@ static int _sde_crtc_check_secure_state(struct drm_crtc *crtc,
 	return 0;
 }
 
+
 extern bool finger_type;
-//extern int aod_layer_hide;
+
 extern int sde_plane_check_fingerprint_layer(const struct drm_plane_state *drm_state);
 static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 		struct plane_state *pstates, int cnt)
@@ -5618,7 +5647,7 @@ static int sde_crtc_onscreenfinger_atomic_check(struct sde_crtc_state *cstate,
 		cstate->fingerprint_dim_layer = NULL;
 	}
 	if (fppressed_index < 0)
-		cstate->fingerprint_pressed = false;
+			cstate->fingerprint_pressed = false;
 
 	return 0;
 }
@@ -6016,7 +6045,7 @@ static void sde_crtc_install_properties(struct drm_crtc *crtc,
 	msm_property_install_range(&sde_crtc->property_info,
 		"idle_time", 0, 0, U64_MAX, 0,
 		CRTC_PROP_IDLE_TIMEOUT);
-
+	//xiaoxiaohuan@OnePlus.MultiMediaService,2018/08/04, add for fingerprint
 		msm_property_install_range(&sde_crtc->property_info,"CRTC_CUST",
 			0x0, 0, INT_MAX, 0, CRTC_PROP_CUSTOM);
 

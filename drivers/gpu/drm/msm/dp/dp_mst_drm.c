@@ -136,6 +136,13 @@ struct dp_mst_encoder_info_cache {
 struct dp_mst_private dp_mst;
 struct dp_mst_encoder_info_cache dp_mst_enc_cache;
 
+static void dp_mst_sim_destroy_port(struct kref *ref)
+{
+	struct drm_dp_mst_port *port = container_of(ref,
+			struct drm_dp_mst_port, kref);
+	kfree(port);
+}
+
 /* DRM DP MST Framework simulator OPs */
 static void dp_mst_sim_add_port(struct dp_mst_private *mst,
 			struct dp_mst_sim_port_data *port_msg)
@@ -180,10 +187,14 @@ static void dp_mst_sim_add_port(struct dp_mst_private *mst,
 			mutex_lock(&mstb->mgr->lock);
 			list_del(&port->next);
 			mutex_unlock(&mstb->mgr->lock);
-			return;
+			kref_put(&port->kref, dp_mst_sim_destroy_port);
+			goto put_port;
 		}
 		(*mstb->mgr->cbs->register_connector)(port->connector);
 	}
+
+put_port:
+	kref_put(&port->kref, dp_mst_sim_destroy_port);
 }
 
 static void dp_mst_sim_link_probe_work(struct work_struct *work)
@@ -538,7 +549,8 @@ static void _dp_mst_update_timeslots(struct dp_mst_private *mst,
 
 		mst->dp_display->set_stream_info(mst->dp_display,
 				dp_bridge->dp_panel,
-				dp_bridge->id, start_slot, num_slots, pbn);
+				dp_bridge->id, start_slot, num_slots, pbn,
+				dp_bridge->vcpi);
 
 		pr_info("bridge:%d vcpi:%d start_slot:%d num_slots:%d, pbn:%d\n",
 			dp_bridge->id, dp_bridge->vcpi,
@@ -563,7 +575,8 @@ static void _dp_mst_update_single_timeslot(struct dp_mst_private *mst,
 
 		mst->dp_display->set_stream_info(mst->dp_display,
 				mst_bridge->dp_panel,
-				mst_bridge->id, start_slot, num_slots, pbn);
+				mst_bridge->id, start_slot, num_slots, pbn,
+				mst_bridge->vcpi);
 	}
 }
 

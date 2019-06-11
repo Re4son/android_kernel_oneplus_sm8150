@@ -765,6 +765,7 @@ if (!pdata->mem_size || (!pdata->record_size && !pdata->console_size &&
 	if (pdata->device_info_size && !is_power_of_2(pdata->device_info_size))
 		pdata->device_info_size = rounddown_pow_of_two(pdata->device_info_size);
 
+
 	cxt->size = pdata->mem_size;
 	cxt->phys_addr = pdata->mem_address;
 	cxt->memtype = pdata->mem_type;

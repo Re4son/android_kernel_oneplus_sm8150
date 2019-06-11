@@ -3727,6 +3727,7 @@ sub process {
 			}
 		}
 
+# avoid VENDOR_EDIT
 		if ($rawline =~ /\bVENDOR_EDIT\b/) {
 			WARN("VENDOR_EDIT",
 			     "Please remove VENDOR_EDIT before you commit it\n" . $herecurr);

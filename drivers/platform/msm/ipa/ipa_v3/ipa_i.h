@@ -811,8 +811,6 @@ struct ipa3_ep_context {
 	u32 eot_in_poll_err;
 	bool ep_delay_set;
 
-	int (*client_lock_unlock)(bool is_lock);
-
 	/* sys MUST be the last element of this struct */
 	struct ipa3_sys_context *sys;
 };
@@ -1122,6 +1120,7 @@ struct ipa3_nat_ipv6ct_common_mem {
  * @index_table_expansion_addr: index expansion table address
  * @public_ip_addr: ip address of nat table
  * @pdn_mem: pdn config table SW cache memory structure
+ * @is_tmp_mem_allocated: indicate if tmp mem has been allocated
  */
 struct ipa3_nat_mem {
 	struct ipa3_nat_ipv6ct_common_mem dev;
@@ -1129,6 +1128,7 @@ struct ipa3_nat_mem {
 	char *index_table_expansion_addr;
 	u32 public_ip_addr;
 	struct ipa_mem_buffer pdn_mem;
+	bool is_tmp_mem_allocated;
 };
 
 /**
@@ -1428,6 +1428,12 @@ enum ipa_smmu_cb_type {
 	IPA_SMMU_CB_MAX
 };
 
+enum ipa_client_cb_type {
+	IPA_USB_CLNT,
+	IPA_MHI_CLNT,
+	IPA_MAX_CLNT
+};
+
 /**
  * struct ipa3_char_device_context - IPA character device
  * @class: pointer to the struct class
@@ -1608,6 +1614,7 @@ struct ipa3_context {
 	bool modem_cfg_emb_pipe_flt;
 	bool ipa_wdi2;
 	bool ipa_wdi2_over_gsi;
+	bool ipa_endp_delay_wa;
 	bool ipa_fltrt_not_hashable;
 	bool use_64_bit_dma_mask;
 	/* featurize if memory footprint becomes a concern */
@@ -1677,6 +1684,9 @@ struct ipa3_context {
 	int gsi_chk_intset_value;
 	int uc_mailbox17_chk;
 	int uc_mailbox17_mismatch;
+	int (*client_lock_unlock[IPA_MAX_CLNT])(bool is_lock);
+	atomic_t is_ssr;
+	bool (*get_teth_port_state[IPA_MAX_CLNT])(void);
 };
 
 struct ipa3_plat_drv_res {
@@ -1714,6 +1724,7 @@ struct ipa3_plat_drv_res {
 	bool use_ipa_pm;
 	struct ipa_pm_init_params pm_init;
 	bool wdi_over_pcie;
+	bool ipa_endp_delay_wa;
 };
 
 /**
@@ -1991,10 +2002,16 @@ int ipa3_xdci_connect(u32 clnt_hdl);
 int ipa3_xdci_disconnect(u32 clnt_hdl, bool should_force_clear, u32 qmi_req_id);
 
 void ipa3_xdci_ep_delay_rm(u32 clnt_hdl);
-void ipa3_register_lock_unlock_callback(int (*client_cb)(bool), u32 ipa_ep_idx);
-void ipa3_deregister_lock_unlock_callback(u32 ipa_ep_idx);
+void ipa3_register_client_callback(int (*client_cb)(bool),
+		bool (*teth_port_state)(void), u32 ipa_ep_idx);
+void ipa3_deregister_client_callback(u32 ipa_ep_idx);
 int ipa3_set_reset_client_prod_pipe_delay(bool set_reset,
 		enum ipa_client_type client);
+int ipa3_start_stop_client_prod_gsi_chnl(enum ipa_client_type client,
+		bool start_chnl);
+void ipa3_client_prod_post_shutdown_cleanup(void);
+
+
 int ipa3_set_reset_client_cons_pipe_sus_holb(bool set_reset,
 		enum ipa_client_type client);
 
@@ -2501,6 +2518,7 @@ int ipa3_tag_process(struct ipa3_desc *desc, int num_descs,
 
 void ipa3_q6_pre_shutdown_cleanup(void);
 void ipa3_q6_post_shutdown_cleanup(void);
+void ipa3_update_ssr_state(bool is_ssr);
 int ipa3_init_q6_smem(void);
 
 int ipa3_mhi_handle_ipa_config_req(struct ipa_config_req_msg_v01 *config_req);

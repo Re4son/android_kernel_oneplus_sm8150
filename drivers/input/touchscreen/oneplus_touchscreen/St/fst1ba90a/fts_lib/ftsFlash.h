@@ -1,22 +1,15 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : ftsFlash.h
- * Description: Source file for ST fst1ba90a driver lib
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
-
-/*!
-  * \file ftsFlash.h
-  * \brief Contains all the definitions and structs to handle the FW update
-  * process
-  */
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : ftsFlash.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by fts
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef FTS_FLASH_H
 #define FTS_FLASH_H
 

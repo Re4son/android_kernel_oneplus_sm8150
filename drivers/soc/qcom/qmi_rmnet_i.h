@@ -41,13 +41,11 @@ struct rmnet_bearer_map {
 	u32 grant_thresh;
 	u16 seq;
 	u8  ack_req;
-
-//	u32 grant_before_ps;
-//	u16 seq_before_ps;
+	u32 ancillary;
 	u32 last_grant;
 	u16 last_seq;
-
-	u32 ancillary;
+	bool tcp_bidir;
+	bool rat_switch;
 };
 
 struct svc_info {
@@ -78,11 +76,8 @@ struct qmi_info {
 	void *dfc_clients[MAX_CLIENT_NUM];
 	void *dfc_pending[MAX_CLIENT_NUM];
 	unsigned long ps_work_active;
-
-//	int ps_enabled;
 	bool ps_enabled;
 	bool dl_msg_active;
-
 };
 
 enum data_ep_type_enum_v01 {
@@ -175,6 +170,7 @@ int
 wda_qmi_client_init(void *port, struct svc_info *psvc, struct qmi_info *qmi);
 void wda_qmi_client_exit(void *wda_data);
 int wda_set_powersave_mode(void *wda_data, u8 enable);
+void qmi_rmnet_flush_ps_wq(void);
 #else
 static inline int
 wda_qmi_client_init(void *port, struct svc_info *psvc, struct qmi_info *qmi)
@@ -189,6 +185,9 @@ static inline void wda_qmi_client_exit(void *wda_data)
 static inline int wda_set_powersave_mode(void *wda_data, u8 enable)
 {
 	return -EINVAL;
+}
+static inline void qmi_rmnet_flush_ps_wq(void)
+{
 }
 #endif
 #endif /*_RMNET_QMI_I_H*/

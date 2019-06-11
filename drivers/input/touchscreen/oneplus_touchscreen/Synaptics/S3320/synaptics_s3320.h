@@ -1,17 +1,15 @@
-/***************************************************
- * File:synaptics_drivers_s3320.h
- * Copyright(C) 2008-2012 OPPO Mobile Comm Corp., Ltd
- * Description:
- *             synaptics s3320 driver
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
-   <author >  <data>  <version>  <desc>
-****************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : synaptics_s3320.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by synaptics
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SYNAPTICS_H_S3320
 #define SYNAPTICS_H_S3320
 

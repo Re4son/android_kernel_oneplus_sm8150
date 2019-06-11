@@ -27,9 +27,7 @@ struct net_device *rmnet_get_rmnet_dev(void *port, u8 mux_id);
 void rmnet_reset_qmi_pt(void *port);
 void rmnet_init_qmi_pt(void *port, void *qmi);
 void rmnet_enable_all_flows(void *port);
-
 bool rmnet_all_flows_enabled(void *port);
-
 void rmnet_set_powersave_format(void *port);
 void rmnet_clear_powersave_format(void *port);
 void rmnet_get_packets(void *port, u64 *rx, u64 *tx);
@@ -67,6 +65,12 @@ static inline void rmnet_init_qmi_pt(void *port, void *qmi)
 static inline void rmnet_enable_all_flows(void *port)
 {
 }
+
+static inline bool rmnet_all_flows_enabled(void *port)
+{
+	return true;
+}
+
 
 static inline bool rmnet_all_flows_enabled(void *port)
 {

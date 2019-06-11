@@ -1,17 +1,3 @@
-/***************************************************
- * File:st_common.c
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             st common driver
- * Version:1.0:
- * Date created:2018/10/26
- * Author: Zengpeng.Chen@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
 #include "../touchpanel_common.h"
 #include "st_common.h"
 #include <linux/crc32.h>

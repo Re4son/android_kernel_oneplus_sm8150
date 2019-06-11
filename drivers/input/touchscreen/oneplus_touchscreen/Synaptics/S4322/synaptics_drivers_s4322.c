@@ -1,15 +1,3 @@
-/**************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd
- * File       : synaptics_drivers_s4322.c
- * Description: Source file for synaptics S4322 driver
- * Version   : 1.0
- * Date        : 2017-04-17
- * Author    : MingQiang.Guo@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- * Revision 1.1, 2017-04-17, MingQiang.Guo@Bsp.Group.Tp, modify based on gerrit review result(http://gerrit.scm.adc.com:8080/#/c/326176)
- ****************************************************************/
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
 #include <linux/sysfs.h>
@@ -2477,7 +2465,7 @@ static void synaptics_write_ps_status(void *chip_data, int ps_status)
     }
 }
 
-static struct oppo_touchpanel_operations synaptics_ops = {
+static struct touchpanel_operations synaptics_ops = {
     .get_vendor       = synaptics_get_vendor,
     .get_chip_info    = synaptics_get_chip_info,
     .reset            = synaptics_reset,

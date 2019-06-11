@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2018-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -453,7 +453,7 @@ __qmi_rmnet_delete_client(void *port, struct qmi_info *qmi, int idx)
 		qmi->dfc_pending[idx] = NULL;
 	}
 
-	if (!qmi_rmnet_has_client(qmi)) {
+	if (!qmi_rmnet_has_client(qmi) && !qmi_rmnet_has_pending(qmi)) {
 		rmnet_reset_qmi_pt(port);
 		kfree(qmi);
 		return 0;
@@ -481,6 +481,8 @@ qmi_rmnet_delete_client(void *port, struct qmi_info *qmi, struct tcmsg *tcm)
 		wda_qmi_client_exit(data);
 		qmi->wda_client = NULL;
 		qmi->wda_pending = NULL;
+	} else {
+		qmi_rmnet_flush_ps_wq();
 	}
 
 	__qmi_rmnet_delete_client(port, qmi, idx);
@@ -559,7 +561,7 @@ void qmi_rmnet_qmi_exit(void *qmi_pt, void *port)
 		data = qmi->wda_pending;
 
 	if (data) {
-		wda_qmi_client_exit(qmi->wda_client);
+		wda_qmi_client_exit(data);
 		qmi->wda_client = NULL;
 		qmi->wda_pending = NULL;
 	}
@@ -575,8 +577,6 @@ void qmi_rmnet_enable_all_flows(struct net_device *dev)
 {
 	struct qos_info *qos;
 	struct rmnet_bearer_map *bearer;
-
-//	int do_wake = 0;
 	bool do_wake = false;
 
 	qos = (struct qos_info *)rmnet_get_qos_pt(dev);
@@ -586,20 +586,15 @@ void qmi_rmnet_enable_all_flows(struct net_device *dev)
 	spin_lock_bh(&qos->qos_lock);
 
 	list_for_each_entry(bearer, &qos->bearer_head, list) {
-
-//		bearer->grant_before_ps = bearer->grant_size;
-//		bearer->seq_before_ps = bearer->seq;
 		if (!bearer->grant_size)
 			do_wake = true;
-
 		bearer->grant_size = DEFAULT_GRANT;
 		bearer->grant_thresh = DEFAULT_GRANT;
 		bearer->seq = 0;
 		bearer->ack_req = 0;
 		bearer->ancillary = 0;
-
-//		do_wake = 1;
-
+		bearer->tcp_bidir = false;
+		bearer->rat_switch = false;
 	}
 
 	if (do_wake) {
@@ -610,7 +605,6 @@ void qmi_rmnet_enable_all_flows(struct net_device *dev)
 	spin_unlock_bh(&qos->qos_lock);
 }
 EXPORT_SYMBOL(qmi_rmnet_enable_all_flows);
-
 
 bool qmi_rmnet_all_flows_enabled(struct net_device *dev)
 {
@@ -636,7 +630,6 @@ bool qmi_rmnet_all_flows_enabled(struct net_device *dev)
 	return ret;
 }
 EXPORT_SYMBOL(qmi_rmnet_all_flows_enabled);
-
 
 
 #ifdef CONFIG_QCOM_QMI_DFC
@@ -749,7 +742,7 @@ EXPORT_SYMBOL(qmi_rmnet_qos_exit);
 #ifdef CONFIG_QCOM_QMI_POWER_COLLAPSE
 static struct workqueue_struct  *rmnet_ps_wq;
 static struct rmnet_powersave_work *rmnet_work;
-static struct list_head ps_list;
+static LIST_HEAD(ps_list);
 
 struct rmnet_powersave_work {
 	struct delayed_work work;
@@ -834,14 +827,12 @@ int qmi_rmnet_set_powersave_mode(void *port, uint8_t enable)
 }
 EXPORT_SYMBOL(qmi_rmnet_set_powersave_mode);
 
-//void qmi_rmnet_work_restart(void *port)
 static void qmi_rmnet_work_restart(void *port)
 {
 	if (!rmnet_ps_wq || !rmnet_work)
 		return;
 	queue_delayed_work(rmnet_ps_wq, &rmnet_work->work, NO_DELAY);
 }
-//EXPORT_SYMBOL(qmi_rmnet_work_restart);
 
 static void qmi_rmnet_check_stats(struct work_struct *work)
 {
@@ -849,7 +840,6 @@ static void qmi_rmnet_check_stats(struct work_struct *work)
 	struct qmi_info *qmi;
 	u64 rxd, txd;
 	u64 rx, tx;
-
 	bool dl_msg_active;
 
 	real_work = container_of(to_delayed_work(work),
@@ -866,13 +856,12 @@ static void qmi_rmnet_check_stats(struct work_struct *work)
 		/* Register to get QMI DFC and DL marker */
 		if (qmi_rmnet_set_powersave_mode(real_work->port, 0) < 0) {
 			/* If this failed need to retry quickly */
-			queue_delayed_work(rmnet_ps_wq,
+			if (rmnet_ps_wq)
+				queue_delayed_work(rmnet_ps_wq,
 					   &real_work->work, HZ / 50);
 			return;
 
 		}
-
-//		qmi->ps_enabled = 0;
 		qmi->ps_enabled = false;
 
 		if (rmnet_get_powersave_notif(real_work->port))
@@ -887,33 +876,33 @@ static void qmi_rmnet_check_stats(struct work_struct *work)
 	txd = tx - real_work->old_tx_pkts;
 	real_work->old_rx_pkts = rx;
 	real_work->old_tx_pkts = tx;
+	dl_msg_active = qmi->dl_msg_active;
+	qmi->dl_msg_active = false;
 
 	dl_msg_active = qmi->dl_msg_active;
 	qmi->dl_msg_active = false;
 
-
 	if (!rxd && !txd) {
-
-		//If no DL msg  and flow disabled,  no need to  powersave
+		/* If no DL msg received and there is a flow disabled,
+		 * (likely in RLF), no need to enter powersave
+		 */
 		if (!dl_msg_active &&
-			!rmnet_all_flows_enabled(real_work->port))
+		    !rmnet_all_flows_enabled(real_work->port))
 			goto end;
-		/* Deregister to suppress QMI DFC and DL marker */
 
+		/* Deregister to suppress QMI DFC and DL marker */
 		if (qmi_rmnet_set_powersave_mode(real_work->port, 1) < 0) {
 			if (rmnet_ps_wq)
 				queue_delayed_work(rmnet_ps_wq,
 					   &real_work->work, PS_INTERVAL);
 			return;
 		}
-
-
-//		qmi->ps_enabled = 1;
-//		clear_bit(PS_WORK_ACTIVE_BIT, &qmi->ps_work_active);
 		qmi->ps_enabled = true;
-		//Clear the bit before enabling flow
-		clear_bit(PS_WORK_ACTIVE_BIT, &qmi->ps_work_active);
 
+		/* Clear the bit before enabling flow so pending packets
+		 * can trigger the work again
+		 */
+		clear_bit(PS_WORK_ACTIVE_BIT, &qmi->ps_work_active);
 		rmnet_enable_all_flows(real_work->port);
 
 		if (rmnet_get_powersave_notif(real_work->port))
@@ -954,7 +943,6 @@ void qmi_rmnet_work_init(void *port)
 		rmnet_ps_wq = NULL;
 		return;
 	}
-	INIT_LIST_HEAD(&ps_list);
 	INIT_DEFERRABLE_WORK(&rmnet_work->work, qmi_rmnet_check_stats);
 	rmnet_work->port = port;
 	rmnet_get_packets(rmnet_work->port, &rmnet_work->old_rx_pkts,
@@ -1003,4 +991,9 @@ void qmi_rmnet_set_dl_msg_active(void *port)
 }
 EXPORT_SYMBOL(qmi_rmnet_set_dl_msg_active);
 
+void qmi_rmnet_flush_ps_wq(void)
+{
+	if (rmnet_ps_wq)
+		flush_workqueue(rmnet_ps_wq);
+}
 #endif

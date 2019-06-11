@@ -1,17 +1,15 @@
-/***************************************************
- * File:synaptics_touch_panel_remote.h
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             synaptics debugging tool code
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : synaptics_touch_panel_remote.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by synaptics
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef _SYNAPTICS_REDREMOTE_H_
 #define _SYNAPTICS_REDREMOTE_H_
 struct remotepanel_data{

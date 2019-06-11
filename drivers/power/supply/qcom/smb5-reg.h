@@ -130,7 +130,7 @@ enum {
  *  DCDC Peripheral Registers  *
  ********************************/
 #define ICL_MAX_STATUS_REG			(DCDC_BASE + 0x06)
-
+#define ICL_STATUS_REG				(DCDC_BASE + 0x07)
 #define AICL_ICL_STATUS_REG			(DCDC_BASE + 0x08)
 
 #define AICL_STATUS_REG				(DCDC_BASE + 0x0A)
@@ -181,6 +181,19 @@ enum {
 
 #define SHIP_MODE_REG				(BATIF_BASE + 0x40)
 #define SHIP_MODE_EN_BIT			BIT(0)
+
+#define BATIF_ADC_CHANNEL_EN_REG		(BATIF_BASE + 0x82)
+#define CONN_THM_CHANNEL_EN_BIT			BIT(4)
+#define DIE_TEMP_CHANNEL_EN_BIT			BIT(2)
+#define MISC_THM_CHANNEL_EN_BIT			BIT(1)
+
+#define BATIF_ADC_INTERNAL_PULL_UP_REG		(BATIF_BASE + 0x86)
+#define INTERNAL_PULL_UP_CONN_THM_MASK		GENMASK(5, 4)
+#define CONN_THM_SHIFT				4
+#define INTERNAL_PULL_NO_PULL			0x00
+#define INTERNAL_PULL_30K_PULL			0x01
+#define INTERNAL_PULL_100K_PULL			0x02
+#define INTERNAL_PULL_400K_PULL			0x03
 
 /********************************
  *  USBIN Peripheral Registers  *
@@ -235,6 +248,7 @@ enum {
 #define FORCE_12V_BIT				BIT(5)
 #define FORCE_9V_BIT				BIT(4)
 #define FORCE_5V_BIT				BIT(3)
+#define IDLE_BIT				BIT(2)
 #define SINGLE_DECREMENT_BIT			BIT(1)
 #define SINGLE_INCREMENT_BIT			BIT(0)
 
@@ -294,6 +308,7 @@ enum {
 #define SUSPEND_ON_COLLAPSE_USBIN_BIT		BIT(7)
 #define USBIN_AICL_PERIODIC_RERUN_EN_BIT	BIT(4)
 #define USBIN_AICL_ADC_EN_BIT			BIT(3)
+/* @bsp 2018/07/13 add for porting & chage */
 #define SUSPEND_ON_COLLAPSE_USBIN_BIT		BIT(7)
 #define USBIN_AICL_HDC_EN_BIT			BIT(6)
 #define USBIN_AICL_START_AT_MAX_BIT		BIT(5)
@@ -312,6 +327,8 @@ enum {
 #define USB_ENG_SSUPPLY_USB2_REG		(USBIN_BASE + 0xC0)
 #define ENG_SSUPPLY_12V_OV_OPT_BIT		BIT(1)
 
+#define USBIN_5V_AICL_THRESHOLD_REG		(USBIN_BASE + 0x81)
+#define USBIN_CONT_AICL_THRESHOLD_REG		(USBIN_BASE + 0x84)
 /********************************
  *  DCIN Peripheral Registers   *
  ********************************/
@@ -330,6 +347,7 @@ enum {
  ********************************/
 #define TYPE_C_SNK_STATUS_REG			(TYPEC_BASE + 0x06)
 #define DETECTED_SRC_TYPE_MASK			GENMASK(6, 0)
+/* add to fix huawei cable compatible issue */
 #define SNK_RP_RP_BIT				BIT(6)
 #define SNK_RP_STD_BIT				BIT(3)
 #define SNK_RP_1P5_BIT				BIT(2)
@@ -348,6 +366,7 @@ enum {
 #define TYPE_C_STATE_MACHINE_STATUS_REG		(TYPEC_BASE + 0x09)
 #define TYPEC_ATTACH_DETACH_STATE_BIT		BIT(5)
 
+/* add to fix huawei cable compatible issue */
 #define DEBUG_ACCESS_SNK_CFG_REG                (TYPEC_BASE + 0x4A)
 
 #define TYPE_C_MISC_STATUS_REG			(TYPEC_BASE + 0x0B)
@@ -441,12 +460,13 @@ enum {
 #define EN_MICRO_USB_FACTORY_MODE_BIT		BIT(1)
 #define EN_MICRO_USB_MODE_BIT			BIT(0)
 
-#define TYPEC_U_USB_WATER_PROTECTION_CFG_REG	(TYPEC_BASE + 0x73)
-#define EN_MICRO_USB_WATER_PROTECTION_BIT	BIT(4)
-#define MICRO_USB_DETECTION_ON_TIME_CFG_MASK	GENMASK(3, 2)
-#define MICRO_USB_DETECTION_PERIOD_CFG_MASK	GENMASK(1, 0)
+#define PMI632_TYPEC_U_USB_WATER_PROTECTION_CFG_REG	(TYPEC_BASE + 0x72)
+#define TYPEC_U_USB_WATER_PROTECTION_CFG_REG		(TYPEC_BASE + 0x73)
+#define EN_MICRO_USB_WATER_PROTECTION_BIT		BIT(4)
+#define MICRO_USB_DETECTION_ON_TIME_CFG_MASK		GENMASK(3, 2)
+#define MICRO_USB_DETECTION_PERIOD_CFG_MASK		GENMASK(1, 0)
 
-#define TYPEC_MICRO_USB_MODE_REG		(TYPEC_BASE + 0x73)
+#define PMI632_TYPEC_MICRO_USB_MODE_REG		(TYPEC_BASE + 0x73)
 #define MICRO_USB_MODE_ONLY_BIT			BIT(0)
 /********************************
  *  MISC Peripheral Registers  *
@@ -477,6 +497,7 @@ enum {
 #define BARK_BITE_WDOG_PET_BIT			BIT(0)
 
 #define AICL_CMD_REG				(MISC_BASE + 0x44)
+#define RESTART_AICL_BIT			BIT(1)
 #define RERUN_AICL_BIT				BIT(0)
 
 #define MISC_SMB_EN_CMD_REG			(MISC_BASE + 0x48)
@@ -494,6 +515,7 @@ enum {
 #define SNARL_BARK_BITE_WD_CFG_REG		(MISC_BASE + 0x53)
 #define BITE_WDOG_DISABLE_CHARGING_CFG_BIT	BIT(7)
 #define SNARL_WDOG_TIMEOUT_MASK                 GENMASK(6, 4)
+#define SNARL_WDOG_TIMEOUT_SHIFT		4
 #define SNARL_WDOG_TMOUT_62P5MS			0x00
 #define SNARL_WDOG_TMOUT_1S			0x40
 #define SNARL_WDOG_TMOUT_8S			0x70
@@ -508,7 +530,12 @@ enum {
 
 #define MISC_THERMREG_SRC_CFG_REG		(MISC_BASE + 0x70)
 #define THERMREG_SW_ICL_ADJUST_BIT		BIT(7)
+#define DIE_ADC_SEL_BIT				BIT(6)
 #define THERMREG_SMB_ADC_SRC_EN_BIT		BIT(5)
+#define THERMREG_CONNECTOR_ADC_SRC_EN_BIT	BIT(4)
+#define SKIN_ADC_CFG_BIT			BIT(3)
+#define THERMREG_SKIN_ADC_SRC_EN_BIT		BIT(2)
+#define THERMREG_DIE_ADC_SRC_EN_BIT		BIT(1)
 #define THERMREG_DIE_CMP_SRC_EN_BIT		BIT(0)
 
 #define MISC_SMB_CFG_REG			(MISC_BASE + 0x90)

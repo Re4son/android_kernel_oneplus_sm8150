@@ -161,6 +161,7 @@ int dsi_display_get_customer_p3_mode(struct drm_connector *connector);
 int dsi_display_update_panel_id_and_gamma_para(struct drm_connector *connector);
 
 
+
 /* drm_debugfs.c drm_debugfs_crc.c */
 #if defined(CONFIG_DEBUG_FS)
 int drm_debugfs_init(struct drm_minor *minor, int minor_id,

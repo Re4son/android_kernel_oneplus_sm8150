@@ -1,15 +1,3 @@
-/**************************************************************
-* Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd
-* File       : synaptics_drivers_td4310.c
-* Description: Source file for synaptics TD4310 driver
-* Version   : 1.0
-* Date        : 2017-05-15
-* Author    : Xing.Xiong@EXP.Bsp.Group.Tp
-* TAG         : BSP.TP.Init
-* ---------------- Revision History: --------------------------
-*   <version>    <date>          < author >                            <desc>
-* Revision 1.1, 2017-05-15, Xing.Xiong@EXP.Bsp.Group.Tp, modify based on gerrit review result(http://gerrit.scm.adc.com:8080/#/c/326176)
-****************************************************************/
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
 #include <linux/sysfs.h>
@@ -2602,7 +2590,7 @@ void synaptics_specific_resume_operate(void *chip_data)
     synaptics_exit_esd_mode(chip_info);
 }
 
-static struct oppo_touchpanel_operations synaptics_ops = {
+static struct touchpanel_operations synaptics_ops = {
     .get_vendor        = synaptics_get_vendor,
     .get_chip_info     = synaptics_get_chip_info,
     .reset             = synaptics_reset,

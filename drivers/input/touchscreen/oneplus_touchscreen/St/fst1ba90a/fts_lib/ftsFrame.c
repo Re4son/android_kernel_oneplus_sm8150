@@ -1,21 +1,3 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : ftsFrame.c
- * Description: Source file for ST fst1ba90a driver lib
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
-
-/*!
-  * \file ftsFrame.c
-  * \brief Contains all the functions to work with frames
-  */
-
 #include "ftsCompensation.h"
 #include "ftsCore.h"
 #include "ftsError.h"

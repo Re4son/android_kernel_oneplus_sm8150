@@ -402,6 +402,7 @@ struct fg_memif {
 };
 
 struct fg_dev {
+	struct thermal_zone_device	*tz_dev;
 	struct device		*dev;
 	struct pmic_revid_data	*pmic_rev_id;
 	struct regmap		*regmap;
@@ -447,6 +448,7 @@ struct fg_dev {
 	bool			profile_available;
 	enum prof_load_status	profile_load_status;
 	bool			battery_missing;
+/* @bsp, 2018/07/14 Battery & Charging porting */
 	bool			use_external_fg;
 	bool			delta_bsoc_irq_en;
 	bool			fg_restarting;

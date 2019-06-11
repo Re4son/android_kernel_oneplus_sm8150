@@ -4,6 +4,7 @@
 #include <linux/slab.h>
 #include <linux/time.h>
 #include "op_dash_adapter.h"
+/* add for dash adapter update */
 #include <linux/power/oem_external_fg.h>
 
 static struct op_adapter_chip *the_chip;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -20,6 +20,7 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/consumer.h>
 
+/* @bsp, 2018/07/13 Battery & Charging porting */
 #include <linux/power/oem_external_fg.h>
 #include <linux/extcon.h>
 #include "storm-watch.h"
@@ -31,10 +32,12 @@ enum print_reason {
 	PR_PARALLEL	= BIT(3),
 	PR_OTG		= BIT(4),
 	PR_WLS		= BIT(5),
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	PR_OP_DEBUG	= BIT(6),
 	PR_FAST_DEBUG = BIT(7),
 };
 
+/* @bsp, 2018/07/13 Battery & Charging porting */
 #define BATT_TYPE_FCC_VOTER "BATT_TYPE_FCC_VOTER"
 #define PSY_ICL_VOTER		"PSY_ICL_VOTER"
 #define TEMP_REGION_MAX               9
@@ -88,13 +91,27 @@ enum print_reason {
 #define MOISTURE_VOTER			"MOISTURE_VOTER"
 #define HVDCP2_ICL_VOTER		"HVDCP2_ICL_VOTER"
 #define CHG_TERMINATION_VOTER		"CHG_TERMINATION_VOTER"
+#define AICL_THRESHOLD_VOTER		"AICL_THRESHOLD_VOTER"
+#define USBOV_DBC_VOTER			"USBOV_DBC_VOTER"
+#define THERMAL_THROTTLE_VOTER		"THERMAL_THROTTLE_VOTER"
 
 #define BOOST_BACK_STORM_COUNT	3
 #define WEAK_CHG_STORM_COUNT	8
 
 #define VBAT_TO_VRAW_ADC(v)		div_u64((u64)v * 1000000UL, 194637UL)
 
-#define ADC_CHG_TERM_MASK	32767
+#define ITERM_LIMITS_PMI632_MA		5000
+#define ITERM_LIMITS_PM8150B_MA		10000
+#define ADC_CHG_ITERM_MASK		32767
+
+#define SDP_100_MA			100000
+#define SDP_CURRENT_UA			500000
+#define CDP_CURRENT_UA			1500000
+#define DCP_CURRENT_UA			1500000
+#define HVDCP_CURRENT_UA		3000000
+#define TYPEC_DEFAULT_CURRENT_UA	900000
+#define TYPEC_MEDIUM_CURRENT_UA		1500000
+#define TYPEC_HIGH_CURRENT_UA		3000000
 
 enum smb_mode {
 	PARALLEL_MASTER = 0,
@@ -118,12 +135,19 @@ enum {
 	BOOST_BACK_WA			= BIT(0),
 	SW_THERM_REGULATION_WA		= BIT(1),
 	CHG_TERMINATION_WA		= BIT(2),
+	WEAK_ADAPTER_WA			= BIT(2),
+	USBIN_OV_WA			= BIT(3),
 };
 
 enum jeita_cfg_stat {
 	JEITA_CFG_NONE = 0,
 	JEITA_CFG_FAILURE,
 	JEITA_CFG_COMPLETE,
+};
+
+enum {
+	RERUN_AICL = 0,
+	RESTART_AICL,
 };
 
 enum smb_irq_index {
@@ -319,6 +343,8 @@ struct smb_params {
 	struct smb_chg_param	jeita_cc_comp_hot;
 	struct smb_chg_param	jeita_cc_comp_cold;
 	struct smb_chg_param	freq_switcher;
+	struct smb_chg_param	aicl_5v_threshold;
+	struct smb_chg_param	aicl_cont_threshold;
 };
 
 struct parallel_params {
@@ -332,6 +358,7 @@ struct smb_iio {
 	struct iio_channel	*mid_chan;
 	struct iio_channel	*batt_i_chan;
 	struct iio_channel	*connector_temp_chan;
+/* @bsp 2018/07/30 add usb connector temp detect and wr*/
 	struct iio_channel	*op_connector_temp_chan;
 	struct iio_channel	*sbux_chan;
 	struct iio_channel	*vph_v_chan;
@@ -361,8 +388,10 @@ struct smb_charger {
 	/* locks */
 	struct mutex		smb_lock;
 	struct mutex		ps_change_lock;
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	struct mutex		write_lock;
 	struct mutex		sw_dash_lock;
+/* @bsp, 2018/07/26 Enable external stm6620 ship mode*/
 	struct pinctrl_state *ship_mode_default;
 	struct pinctrl_state *usb_temperature_default;
 	struct pinctrl *pinctrl;
@@ -372,6 +401,7 @@ struct smb_charger {
 	struct power_supply		*usb_psy;
 	struct power_supply		*dc_psy;
 	struct power_supply		*bms_psy;
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	struct power_supply_desc	usb_psy_desc;
 	struct power_supply		*usb_main_psy;
 	struct power_supply		*usb_port_psy;
@@ -381,6 +411,7 @@ struct smb_charger {
 
 	/* notifiers */
 	struct notifier_block	nb;
+/* @bsp, 2018/07/13 Battery & Charging porting */
 #if defined(CONFIG_FB)
 	struct notifier_block		fb_notif;
 #elif defined(CONFIG_MSM_RDM_NOTIFY)
@@ -418,6 +449,7 @@ struct smb_charger {
 	struct work_struct	moisture_protection_work;
 	struct work_struct	chg_termination_work;
 	struct delayed_work	ps_change_timeout_work;
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	struct delayed_work rechk_sw_dsh_work;
 	struct delayed_work	re_kick_work;
 	struct delayed_work	unplug_check_work;
@@ -441,6 +473,7 @@ struct smb_charger {
 	struct delayed_work	lpd_ra_open_work;
 	struct delayed_work	lpd_detach_work;
 	struct delayed_work	thermal_regulation_work;
+	struct delayed_work	usbov_dbc_work;
 
 	struct alarm		lpd_recheck_timer;
 	struct alarm		moisture_protection_alarm;
@@ -463,6 +496,7 @@ struct smb_charger {
 	bool			typec_legacy;
 
 	/* cached status */
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	int				BATT_TEMP_T0;
 	int				BATT_TEMP_T1;
 	int				BATT_TEMP_T2;
@@ -563,10 +597,12 @@ struct smb_charger {
 	int			otg_cl_ua;
 	int			sw_iterm_ma;
 	bool			check_batt_full_by_sw;
+/*@bsp, 20181023 icl set 1A if battery lower than 15%*/
 	bool			OTG_ICL_CTRL;
 	int			OTG_LOW_BAT;
 	int			OTG_LOW_BAT_ICL;
 	int			OTG_NORMAL_BAT_ICL;
+/* @bsp, 2018/07/26 add the external ship-mode and connecter temp detect start*/
 	int			shipmode_en;
 	int			connecter_temp;
 	int			count_total;
@@ -579,7 +615,7 @@ struct smb_charger {
 	int			disconnect_vbus;
 	int			vbus_ctrl;
 	bool			low_voltage_charger;
-	bool			lpd_disabled;
+/* @bsp, 2018/07/26 add the external ship-mode and connecter temp detect end*/
 	bool			uusb_apsd_rerun_done;
 	bool			typec_present;
 	int			fake_input_current_limited;
@@ -599,6 +635,7 @@ struct smb_charger {
 	int			smb_temp_max;
 	u8			typec_try_mode;
 	enum lpd_stage		lpd_stage;
+	bool			lpd_disabled;
 	enum lpd_reason		lpd_reason;
 	bool			fcc_stepper_enable;
 	int			die_temp;
@@ -615,12 +652,22 @@ struct smb_charger {
 	bool			uusb_moisture_protection_enabled;
 	int			charge_full_cc;
 	int			cc_soc_ref;
+	bool			hw_die_temp_mitigation;
+	bool			hw_connector_mitigation;
+	bool			hw_skin_temp_mitigation;
+	int			connector_pull_up;
+	int			aicl_5v_threshold_mv;
+	int			default_aicl_5v_threshold_mv;
+	int			aicl_cont_threshold_mv;
+	int			default_aicl_cont_threshold_mv;
+	bool			aicl_max_reached;
 
 	/* workaround flag */
 	u32			wa_flags;
 	int			boost_current_ua;
 	int                     qc2_max_pulses;
 	enum qc2_non_comp_voltage qc2_unsupported_voltage;
+	bool			dbc_usbov;
 
 	/* extcon for VBUS / ID notification to USB for uUSB */
 	struct extcon_dev	*extcon;
@@ -646,6 +693,7 @@ struct smb_charger {
 	int			wireless_vout;
 };
 
+/* @bsp, 2018/07/13 Battery & Charging porting */
 int smblib_set_prop_charge_parameter_set(struct smb_charger *chg);
 extern void set_mcu_en_gpio_value(int value);
 extern void usb_sw_gpio_set(int value);
@@ -665,7 +713,7 @@ int smblib_batch_read(struct smb_charger *chg, u16 addr, u8 *val, int count);
 int smblib_get_charge_param(struct smb_charger *chg,
 			    struct smb_chg_param *param, int *val_u);
 int smblib_get_usb_suspend(struct smb_charger *chg, int *suspend);
-
+int smblib_get_aicl_cont_threshold(struct smb_chg_param *param, u8 val_raw);
 int smblib_enable_charging(struct smb_charger *chg, bool enable);
 int smblib_set_charge_param(struct smb_charger *chg,
 			    struct smb_chg_param *param, int val_u);
@@ -682,6 +730,8 @@ int smblib_set_chg_freq(struct smb_chg_param *param,
 				int val_u, u8 *val_raw);
 int smblib_set_prop_boost_current(struct smb_charger *chg,
 				const union power_supply_propval *val);
+int smblib_set_aicl_cont_threshold(struct smb_chg_param *param,
+				int val_u, u8 *val_raw);
 int smblib_vbus_regulator_enable(struct regulator_dev *rdev);
 int smblib_vbus_regulator_disable(struct regulator_dev *rdev);
 int smblib_vbus_regulator_is_enabled(struct regulator_dev *rdev);
@@ -707,6 +757,7 @@ irqreturn_t wdog_snarl_irq_handler(int irq, void *data);
 irqreturn_t wdog_bark_irq_handler(int irq, void *data);
 irqreturn_t typec_or_rid_detection_change_irq_handler(int irq, void *data);
 irqreturn_t temp_change_irq_handler(int irq, void *data);
+irqreturn_t usbin_ov_irq_handler(int irq, void *data);
 
 int smblib_get_prop_input_suspend(struct smb_charger *chg,
 				union power_supply_propval *val);
@@ -740,6 +791,7 @@ int smblib_set_prop_batt_status(struct smb_charger *chg,
 				const union power_supply_propval *val);
 int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 				const union power_supply_propval *val);
+/* @bsp, 2018/07/13 Battery & Charging porting */
 void op_bus_vote(int disable);
 int get_prop_fast_adapter_update(struct smb_charger *chg);
 void op_handle_usb_plugin(struct smb_charger *chg);
@@ -814,6 +866,8 @@ int smblib_get_prop_charger_temp(struct smb_charger *chg,
 				union power_supply_propval *val);
 int smblib_get_prop_die_health(struct smb_charger *chg);
 int smblib_get_prop_connector_health(struct smb_charger *chg);
+int smblib_get_prop_vph_voltage_now(struct smb_charger *chg,
+				union power_supply_propval *val);
 int smblib_set_prop_pd_current_max(struct smb_charger *chg,
 				const union power_supply_propval *val);
 int smblib_set_prop_sdp_current_max(struct smb_charger *chg,
@@ -841,7 +895,7 @@ int smblib_get_prop_fcc_delta(struct smb_charger *chg,
 int smblib_get_thermal_threshold(struct smb_charger *chg, u16 addr, int *val);
 int smblib_dp_dm(struct smb_charger *chg, int val);
 int smblib_disable_hw_jeita(struct smb_charger *chg, bool disable);
-int smblib_rerun_aicl(struct smb_charger *chg);
+int smblib_run_aicl(struct smb_charger *chg, int type);
 int smblib_set_icl_current(struct smb_charger *chg, int icl_ua);
 int smblib_get_icl_current(struct smb_charger *chg, int *icl_ua);
 int smblib_get_charge_current(struct smb_charger *chg, int *total_current_ua);
@@ -862,7 +916,9 @@ enum alarmtimer_restart smblib_lpd_recheck_timer(struct alarm *alarm,
 				ktime_t time);
 int smblib_toggle_smb_en(struct smb_charger *chg, int toggle);
 void smblib_hvdcp_detect_enable(struct smb_charger *chg, bool enable);
+void smblib_hvdcp_exit_config(struct smb_charger *chg);
 void smblib_apsd_enable(struct smb_charger *chg, bool enable);
+int smblib_force_vbus_voltage(struct smb_charger *chg, u8 val);
 
 int smblib_init(struct smb_charger *chg);
 int smblib_deinit(struct smb_charger *chg);

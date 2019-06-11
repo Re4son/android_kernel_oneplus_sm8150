@@ -1,15 +1,3 @@
-/**************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd
- * File       : synaptics_drivers_s3320.c
- * Description: Source file for synaptics S3320 driver
- * Version   : 1.0
- * Date        : 2016-09-02
- * Author    : Tong.han@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- * Revision 1.1, 2016-09-09, Tong.han@Bsp.Group.Tp, modify based on gerrit review result(http://gerrit.scm.adc.com:8080/#/c/223721/)
- ****************************************************************/
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
 #include <linux/sysfs.h>
@@ -1810,7 +1798,7 @@ RE_TRY:
     kfree(raw_data);
 }
 
-static struct oppo_touchpanel_operations synaptics_ops = {
+static struct touchpanel_operations synaptics_ops = {
     .get_vendor       = synaptics_get_vendor,
     .get_chip_info    = synaptics_get_chip_info,
     .reset            = synaptics_reset,

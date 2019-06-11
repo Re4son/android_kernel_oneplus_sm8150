@@ -589,6 +589,7 @@ uint64_t dsi_display_get_serial_number_id(uint64_t serial_number);
 
 int dsi_display_get_serial_number_AT(struct drm_connector *connector);
 
+
 /**
  * dsi_display_enable_event() - enable interrupt based connector event
  * @connector:          Pointer to drm connector structure

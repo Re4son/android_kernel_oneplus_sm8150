@@ -1,20 +1,3 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : ftsTime.c
- * Description: Source file for ST fst1ba90a driver lib
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
-/*!
-  * \file ftsTime.c
-  * \brief Contains all functions to handle and measure the time in the driver
-  */
-
 #include <linux/errno.h>
 #include <linux/kernel.h>
 #include <linux/module.h>

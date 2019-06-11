@@ -46,9 +46,11 @@ static const char * const power_supply_type_text[] = {
 	"USB_PD", "USB_PD_DRP", "BrickID",
 	"USB_HVDCP", "USB_HVDCP_3", "Wireless", "USB_FLOAT",
 	"BMS", "Parallel", "Main", "Wipower",
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	"USB_C_UFP", "USB_C_DFP",
 	"Charge_Pump", "DASH",
 };
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	static const char *const cc_orientation_text[] = {
 		"Unknown", "cc1", "cc2"
 	};
@@ -150,6 +152,7 @@ static ssize_t power_supply_show_property(struct device *dev,
 	else if (off == POWER_SUPPLY_PROP_TYPEC_POWER_ROLE)
 		return scnprintf(buf, PAGE_SIZE, "%s\n",
 			       power_supply_usbc_pr_text[value.intval]);
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	else if (off == POWER_SUPPLY_PROP_OEM_TYPEC_CC_ORIENTATION)
 		return snprintf(
 		buf, 255, "%s\n",
@@ -231,6 +234,7 @@ static ssize_t power_supply_store_property(struct device *dev,
 static struct device_attribute power_supply_attrs[] = {
 	/* Properties of type `int' */
 	POWER_SUPPLY_ATTR(status),
+/* @bsp, 2018/07/13 Battery & Charging porting */
 	POWER_SUPPLY_ATTR(set_allow_read_extern_fg_iic),
 	POWER_SUPPLY_ATTR(cc_to_cv_point),
 	POWER_SUPPLY_ATTR(chg_protect_status),
@@ -418,6 +422,11 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(main_fcc_max),
 	POWER_SUPPLY_ATTR(fg_reset),
 	POWER_SUPPLY_ATTR(cc_soc),
+	POWER_SUPPLY_ATTR(voltage_vph),
+	POWER_SUPPLY_ATTR(batt_age_level),
+	POWER_SUPPLY_ATTR(chip_version),
+	POWER_SUPPLY_ATTR(qc_opti_disable),
+	POWER_SUPPLY_ATTR(therm_icl_limit),
 	/* Charge pump properties */
 	POWER_SUPPLY_ATTR(cp_status1),
 	POWER_SUPPLY_ATTR(cp_status2),

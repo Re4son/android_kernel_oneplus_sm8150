@@ -35,7 +35,9 @@
 #include <dt-bindings/clock/mdss-10nm-pll-clk.h>
 #include "dsi-panel-samsung_sofef00_m_cmd.dtsi"
 #include "dsi-panel-samsung_s6e3fc2x01.dtsi"
+// Begin: Add by lauwo.zhong for booting up without panel on 2018/10/20
 #include "dsi-panel-samsung-sofef00_m-fhd-video.dtsi"
+// End:   Add by lauwo.zhong for booting up without panel on 2018/10/20
 #include "dsi-panel-samsung_oneplus_dsc.dtsi"
 #include "dsi-panel-samsung_s6e3fc2x01_ed173.dtsi"
 #include "dsi_samsung_oneplus_fhd_dsc.dtsi"
@@ -901,6 +903,7 @@
 				08 05 03 04 00 1a 18];
 			qcom,display-topology = <2 0 2>;
 			qcom,default-topology-index = <0>;
+			qcom,mdss-mdp-transfer-time-us = <16700>;
 		};
 	};
 };

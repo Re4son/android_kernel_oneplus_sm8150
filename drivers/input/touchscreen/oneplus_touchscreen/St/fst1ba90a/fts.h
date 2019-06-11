@@ -1,14 +1,15 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : fts.h
- * Description:  ST fst1ba90a driver
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : fts.h 
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by fts
+*
+* Version	  : V1.0
+*
+***********************************************************/
 
 #ifndef _LINUX_FTS_I2C_H_
 #define _LINUX_FTS_I2C_H_

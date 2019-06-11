@@ -1,17 +1,3 @@
-/***************************************************
- * File:synaptics_touch_panel_remote.c
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             synaptics debugging tool code
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -287,8 +273,7 @@ static struct i2c_client* remote_rmi4_get_i2c_client(void)
 static int remote_rmit_set_page(unsigned int address) {
     struct i2c_client* i2c_client = remote_rmi4_get_i2c_client();
     unsigned char retry;
-    //unsigned char buf[2];
-	unsigned char *buf = kzalloc(2, GFP_KERNEL | GFP_DMA);
+    unsigned char buf[2];
     struct i2c_msg msg[] = {
         {
             .addr = i2c_client->addr,
@@ -308,10 +293,9 @@ static int remote_rmit_set_page(unsigned int address) {
     }
 
     if (retry == 2) {
-	kfree(buf);
         return -EIO;
     }
-	kfree(buf);
+
     return 0;
 }
 
@@ -319,8 +303,7 @@ static int remote_rmit_put_page(void)
 {
     struct i2c_client* i2c_client = remote_rmi4_get_i2c_client();
     unsigned char retry;
-    //unsigned char buf[2];
-	unsigned char *buf = kzalloc(2, GFP_KERNEL | GFP_DMA);
+    unsigned char buf[2];
     struct i2c_msg msg[] = {
         {
             .addr = i2c_client->addr,
@@ -340,10 +323,9 @@ static int remote_rmit_put_page(void)
     }
 
     if (retry == 2) {
-	kfree(buf);
         return -EIO;
     }
-	kfree(buf);
+
     return 0;
 }
 
@@ -351,14 +333,14 @@ int remote_rmi4_i2c_read(unsigned short addr, unsigned char *data, unsigned shor
 {
     int retval;
     unsigned char retry;
-    unsigned char *buf = kzalloc(1 * sizeof(char *), GFP_KERNEL | GFP_DMA);
+    unsigned char buf;
     struct i2c_client* i2c_client = remote_rmi4_get_i2c_client();
     struct i2c_msg msg[] = {
         {
             .addr = i2c_client->addr,
             .flags = 0,
             .len = 1,
-            .buf = buf,
+            .buf = &buf,
         },
         {
             .addr = i2c_client->addr,
@@ -368,8 +350,7 @@ int remote_rmi4_i2c_read(unsigned short addr, unsigned char *data, unsigned shor
         },
     };
 
-    //buf = addr & 0xff;
-    buf[0] = addr & 0xff;
+    buf = addr & 0xff;
 
     retval = remote_rmit_set_page(addr);
     if (retval < 0)
@@ -382,14 +363,14 @@ int remote_rmi4_i2c_read(unsigned short addr, unsigned char *data, unsigned shor
         }
         msleep(20);
     }
-	printk("retry is %d", retry);
+
     if (retry == 2) {
         retval = -EIO;
     }
 
 exit:
     remote_rmit_put_page();
-	kfree(buf);
+
     return retval;
 }
 

@@ -1088,6 +1088,7 @@ int dsi_phy_set_timing_params(struct msm_dsi_phy *phy,
 		rc = phy->hw.ops.phy_timing_val(&phy->cfg.timing, timing, size);
 	if (!rc)
 		phy->cfg.is_phy_timing_present = true;
+
 	mutex_unlock(&phy->phy_lock);
 	return rc;
 }

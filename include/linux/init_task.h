@@ -65,6 +65,7 @@ extern struct fs_struct init_fs;
 #define INIT_POSIX_TIMERS(s)
 #define INIT_CPU_TIMERS(s)
 #define INIT_CPUTIMER(s)
+
 #endif
 
 #if defined(CONFIG_MEMPLUS)

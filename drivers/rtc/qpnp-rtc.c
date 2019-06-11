@@ -314,6 +314,7 @@ qpnp_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	value[1] = (secs >> 8) & 0xFF;
 	value[2] = (secs >> 16) & 0xFF;
 	value[3] = (secs >> 24) & 0xFF;
+	/*op modify for print rtc time*/
 	dev_info(dev, "val[0] = 0x%x, val[1] = 0x%x, val[2] = 0x%x, val[3] = 0x%x\n",
 					value[0], value[1], value[2], value[3]);
 

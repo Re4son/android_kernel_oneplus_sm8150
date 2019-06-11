@@ -1958,7 +1958,6 @@ static int prctl_set_mm_map(int opt, const void __user *addr, unsigned long data
 	 * arg_lock protects concurent updates but we still need mmap_sem for
 	 * read to exclude races with sys_brk.
 	 */
-
 	down_read(&mm->mmap_sem);
 
 	/*

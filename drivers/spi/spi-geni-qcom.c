@@ -1415,10 +1415,10 @@ static irqreturn_t geni_spi_irq(int irq, void *data)
 	}
 exit_geni_spi_irq:
 	geni_write_reg(m_irq, mas->base, SE_GENI_M_IRQ_CLEAR);
-    if (mas->cmd_done) {
-         mas->cmd_done = false;
-         complete(&mas->xfer_done);
-    }
+	if (mas->cmd_done) {
+		mas->cmd_done = false;
+		complete(&mas->xfer_done);
+	}
 	return IRQ_HANDLED;
 }
 

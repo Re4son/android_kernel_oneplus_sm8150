@@ -4333,6 +4333,7 @@ static void hub_set_initial_usb2_lpm_policy(struct usb_device *udev)
 	if (hub)
 		connect_type = hub->ports[udev->portnum - 1]->connect_type;
 
+/* david.liu@bsp, 20171113 USB patches porting */
 	if (!udev->bos)
 		return;
 

@@ -1,17 +1,15 @@
-/***************************************************
- * File:st_common.h
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             st common driver
- * Version:1.0:
- * Date created:2018/10/26
- * Author: Zengpeng.Chen@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : st_common.h 
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by fts
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef ST_H
 #define ST_H
 

@@ -1,15 +1,13 @@
-/**************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.£¬
- * File       : touchpanel_common_driver.c
- * Description: Source file for Touch common driver
- * Version   : 1.0
- * Date        : 2016-09-02
- * Author    : Tong.han@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- * Revision 1.1, 2016-09-09, Tong.han@Bsp.Group.Tp, modify based on gerrit review result(http://gerrit.scm.adc.com:8080/#/c/223721/)
- ****************************************************************/
+ /***********************************************************
+ * Description : OnePlus touchpanel driver
+ * 
+ * File        : touchpanel_common.h      
+ *
+ * Function    : touchpanel public interface  
+ * 
+ * Version     : V1.0 
+ *
+ ***********************************************************/
 #ifndef _TOUCHPANEL_COMMON_H_
 #define _TOUCHPANEL_COMMON_H_
 
@@ -385,9 +383,7 @@ struct touchpanel_data {
     bool face_detect_support;                           /*touch porximity function*/
     bool lcd_refresh_rate_switch;                       /*switch lcd refresh rate 60-90hz*/
 	bool touch_hold_support;							/*touchhold function for fingerprint*/
-	bool charge_detect;
-	bool charge_detect_support;
-	bool module_id_support;								/*update firmware by lcd module id*/
+
     bool i2c_ready;                                     /*i2c resume status*/
     bool is_usb_checked;                                /*state of charger or usb*/
     bool loading_fw;                                    /*touchpanel FW updating*/
@@ -486,7 +482,7 @@ struct touchpanel_data {
     struct input_dev      *input_dev;
     struct input_dev      *kpd_input_dev;
 
-    struct oppo_touchpanel_operations *ts_ops;          /*call_back function*/
+    struct touchpanel_operations *ts_ops;          /*call_back function*/
     struct proc_dir_entry *prEntry_tp;                  /*struct proc_dir_entry of "/proc/touchpanel"*/
     struct proc_dir_entry *prEntry_debug_tp;                  /*struct proc_dir_entry of "/proc/touchpanel/debug_info"*/
     struct debug_info_proc_operations  *debug_info_ops;                /*debug info data*/
@@ -499,7 +495,7 @@ struct touchpanel_data {
     char                  *earsense_delta;
 };
 
-struct oppo_touchpanel_operations {
+struct touchpanel_operations {
     int  (*get_chip_info)        (void *chip_data);                                           /*return 0:success;other:failed*/
     int  (*mode_switch)          (void *chip_data, work_mode mode, bool flag);                /*return 0:success;other:failed*/
     int  (*get_touch_points)     (void *chip_data, struct point_info *points, int max_num);   /*return point bit-map*/
@@ -575,11 +571,11 @@ int  tp_powercontrol_1v8(struct hw_resource *hw_res, bool on);
 int  tp_powercontrol_2v8(struct hw_resource *hw_res, bool on);
 
 void operate_mode_switch  (struct touchpanel_data *ts);
-void input_report_key_oppo(struct input_dev *dev, unsigned int code, int value);
+void input_report_key_reduce(struct input_dev *dev, unsigned int code, int value);
 void esd_handle_switch(struct esd_information *esd_info, bool on);
 void clear_view_touchdown_flag(void);
 void tp_touch_btnkey_release(void);
-void tp_util_get_vendor(struct touchpanel_data *ts, struct panel_info *panel_data);
+void tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *panel_data);
 extern bool tp_judge_ic_match(char * tp_ic_name);
 
 /* add haptic audio tp mask */

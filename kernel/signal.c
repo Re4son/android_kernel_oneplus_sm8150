@@ -1186,6 +1186,7 @@ int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
 	unsigned long flags;
 	int ret = -ESRCH;
 
+        //huruihuan add for kill task in D status
 	if(sig == SIGKILL) {
 		if(p && p->flags & PF_FROZEN) {
 		struct task_struct *child = p;

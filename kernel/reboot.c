@@ -223,6 +223,7 @@ void kernel_restart(char *cmd)
 	else
 		pr_emerg("Restarting system with command '%s'\n", cmd);
 
+	/*if enable dump, if dm-verity device corrupted, force enter dump */
 	if (oem_get_download_mode()) {
 		if (((cmd != NULL && cmd[0] != '\0') &&
 				!strcmp(cmd, "dm-verity device corrupted"))) {

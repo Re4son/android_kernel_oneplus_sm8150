@@ -22,12 +22,12 @@
 		thermal-sensors = <&pm8150_adc_tm ADC_AMUX_THM1_PU2>;
 		trips {
 			freq_config1: freq_config1 {
-				temperature = <52000>;
+				temperature = <54000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			freq_config2: freq_config2 {
-				temperature = <54000>;
+				temperature = <56000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
@@ -59,30 +59,6 @@
 				cooling-device =
 					<&CPU0 11 11>;/*844*/
 			};
-			freq_dev5 {
-				trip = <&freq_config2>;
-				cooling-device =
-					<&CPU4 THERMAL_MAX_LIMIT
-					THERMAL_MAX_LIMIT>;
-			};
-			freq_dev6 {
-				trip = <&freq_config2>;
-				cooling-device =
-					<&CPU5 THERMAL_MAX_LIMIT
-					THERMAL_MAX_LIMIT>;
-			};
-			freq_dev7 {
-				trip = <&freq_config2>;
-				cooling-device =
-					<&CPU6 THERMAL_MAX_LIMIT
-					THERMAL_MAX_LIMIT>;
-			};
-			freq_dev8 {
-				trip = <&freq_config2>;
-				cooling-device =
-					<&CPU7 THERMAL_MAX_LIMIT
-					THERMAL_MAX_LIMIT>;
-			};
 		};
 	};
 
@@ -103,12 +79,17 @@
 	skin-msm-therm {
 		trips {
 			freq_config3: freq_config3 {
-				temperature = <63000>;
+				temperature = <62000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
 			freq_config4: freq_config4 {
-				temperature = <65000>;
+				temperature = <64000>;
+				hysteresis = <2000>;
+				type = "passive";
+			};
+			freq_config5: freq_config5 {
+				temperature = <66000>;
 				hysteresis = <2000>;
 				type = "passive";
 			};
@@ -145,13 +126,13 @@
 					<&CPU7 13 13>;/*1497*/
 			};
 			freq_dev6 {
-				trip = <&freq_config3>;
+				trip = <&freq_config4>;
 				cooling-device =
 					<&msm_gpu THERMAL_NO_LIMIT
 						(THERMAL_MAX_LIMIT-3)>;/*499*/
 			};
 			freq_dev7 {
-				trip = <&freq_config4>;
+				trip = <&freq_config5>;
 				cooling-device =
 					<&msm_gpu THERMAL_NO_LIMIT
 						(THERMAL_MAX_LIMIT-2)>;/*427*/
@@ -163,25 +144,18 @@
 /*tp 1.8v power change to gpio119 for T0 hw*/
 &qupv3_se17_i2c {
 	sec-s6sy761@48 {
-		status = "disable";
-	//	enable1v8_gpio = <&tlmm 119 0x00>;
+		enable1v8_gpio = <&tlmm 119 0x00>;
 		pinctrl-0 = <&tp_irq_active &tp_rst_active &tp_1v8_t0_active>;
                 pinctrl-1 = <&tp_rst_suspend &tp_1v8_t0_suspend>;
 	};
 };
-&qupv3_se17_i2c {
-	st_fts@49{
-	status = "disable";
-	};
-};
+
 &qupv3_se17_i2c {
         synaptics-s3706@20 {
-        //        enable1v8_gpio = <&tlmm 119 0x00>;
-		pinctrl-0 = <&tp_irq_active &tp_1v8_t0_active &tp_rst_active>;
+                enable1v8_gpio = <&tlmm 119 0x00>;
+		pinctrl-0 = <&tp_irq_active &tp_rst_active &tp_1v8_t0_active>;
                 pinctrl-1 = <&tp_rst_suspend &tp_1v8_t0_suspend>;
         };
-	/delete-node/ sec-s6sy761@48;
-	/delete-node/ st_fts@49;
 };
 
 /*fingerprint reset gpio change to gpio131 on T0*/
@@ -230,18 +204,7 @@
 		input-enable;
 	};
 };
-&tp_rst_active{
-                mux {
-                        pins = "gpio54";
-                        function = "gpio";
-                };
-                config {
-                        pins = "gpio54";
-                        drive-strength = <8>;
-                        bias-pull-up;
-                };
 
-};
 &tlmm {
 		fp_id0_init: fp_id0_init {
 			mux {
@@ -268,6 +231,7 @@
                                 bias-pull-up;
                         };
                 };
+
                 tp_1v8_t0_suspend: tp_1v8_t0_suspend {
                         mux {
                                 pins = "gpio119";
@@ -356,12 +320,6 @@
 	/* for external ship mode support */
 	op,stm-ctrl-gpio = <&tlmm 21 0x00>;
 	op,vbus-ctrl-gpio = <&pm8150_gpios 9 GPIO_ACTIVE_LOW>;
-	/* ibatmax setting for different temp regions */
-	ibatmax-little-cold-ma = <320>;
-	ibatmax-little-cool-thr-ma = <1750>;
-	ibatmax-cool-thr-ma = <1000>;
-	ibatmax-cool-ma = <1450>;
-	ibatmax-warm-ma = <1050>;
 };
 
 &mtp_batterydata {
@@ -373,7 +331,7 @@
 &usb2_phy0 {
 	qcom,param-override-seq =
 		<0x67 0x6c/*Disconnection voltage +21.56%*/
-		 0x09 0x70/*Pre-emphasis:4x DC voltage level:+13.30%*/
+		 0xc9 0x70/*Pre-emphasis:3x DC voltage level:+13.30%*/
 		 0x28 0x74>;
 };
 
@@ -386,9 +344,9 @@
 };
 /* @bsp, USB oem config END*/
 
-/*&motor_pl {
+&motor_pl {
 	status = "disabled";
-};*/
+};
 &oem_rf_cable {
     rf,cable-gpio-1 = <&pm8150_gpios 4 0>;
     pinctrl-0 = <&rf_cable_ant0_active &rf_pm8150_cable_ant1>;
@@ -417,36 +375,6 @@
 &pm8150b_haptics {
 	status = "ok";
 	vdd-supply = <&haptics_boost_vreg>;
-	wf_5 {
-		qcom,wf-brake-pattern = [03 03 03 03];
-	};
-	wf_6 {
-		/* WEAK */
-		qcom,effect-id = <6>;
-		qcom,wf-vmax-mv = <2500>;
-		qcom,wf-pattern = [7e 7e 7e fe fe];
-		qcom,wf-play-rate-us = <6667>;
-		qcom,wf-brake-pattern = [00 00 00 00];
-		qcom,lra-auto-resonance-disable;
-	};
-	wf_7 {
-		/* MIDDLE */
-		qcom,effect-id = <7>;
-		qcom,wf-vmax-mv = <2500>;
-		qcom,wf-pattern = [7e 7e 7e 7e fe fe fe];
-		qcom,wf-play-rate-us = <6667>;
-		qcom,wf-brake-pattern = [00 00 00 00];
-		qcom,lra-auto-resonance-disable;
-	};
-	wf_8 {
-		/* STRONG */
-		qcom,effect-id = <8>;
-		qcom,wf-vmax-mv = <2500>;
-		qcom,wf-pattern = [7e 7e 7e 7e 7e fe fe fe];
-		qcom,wf-play-rate-us = <6667>;
-		qcom,wf-brake-pattern = [00 00 00 00];
-		qcom,lra-auto-resonance-disable;
-	};
 };
 
 &wdog{

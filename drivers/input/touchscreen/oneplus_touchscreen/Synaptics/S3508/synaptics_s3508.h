@@ -1,17 +1,15 @@
-/***************************************************
- * File:synaptics_drivers_s3508.h
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             synaptics s3508 driver
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : synaptics_s3508.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by synaptics
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SYNAPTICS_H_S3508
 #define SYNAPTICS_H_S3508
 

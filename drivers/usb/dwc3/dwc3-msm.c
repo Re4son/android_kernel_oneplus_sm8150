@@ -2763,6 +2763,7 @@ static void dwc3_resume_work(struct work_struct *w)
 
 		ret = extcon_get_property(edev, extcon_id,
 				EXTCON_PROP_USB_SS, &val);
+		/*2018.12.18 wr for USB3.1 SS issue after DP runned*/
 		if (!ret)
 			dwc->maximum_speed = val.intval ?
 			dwc->max_hw_supp_speed : USB_SPEED_HIGH;

@@ -35,6 +35,7 @@
 #include "debug.h"
 #include "gadget.h"
 #include "io.h"
+/* david.liu@bsp, 20170112 Add usb enumeration status */
 #include <linux/power/oem_external_fg.h>
 
 static struct notify_usb_enumeration_status
@@ -921,6 +922,7 @@ static int dwc3_ep0_std_request(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
 		ret = dwc3_ep0_handle_feature(dwc, ctrl, 1);
 		break;
 	case USB_REQ_SET_ADDRESS:
+/* david.liu@bsp, 20170112 Add usb enumeration status */
 		if (usb_enumeration_status
 			&& usb_enumeration_status->notify_usb_enumeration) {
 			usb_enumeration_status->notify_usb_enumeration(true);

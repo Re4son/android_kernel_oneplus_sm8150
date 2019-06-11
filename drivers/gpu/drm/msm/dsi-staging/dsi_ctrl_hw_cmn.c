@@ -25,6 +25,7 @@
 #include "sde_dbg.h"
 #include "sde_trace.h"
 
+
 #define MMSS_MISC_CLAMP_REG_OFF           0x0014
 #define DSI_CTRL_DYNAMIC_FORCE_ON         (0x23F|BIT(8)|BIT(9)|BIT(11)|BIT(21))
 #define DSI_CTRL_CMD_MISR_ENABLE          BIT(28)

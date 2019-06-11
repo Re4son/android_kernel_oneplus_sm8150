@@ -18,13 +18,17 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <video/mipi_display.h>
+#include <linux/input.h>
+#include <linux/proc_fs.h>
+#include <linux/msm_drm_notify.h>
+#include <linux/notifier.h>
 #include "dsi_panel.h"
 #include "dsi_ctrl_hw.h"
 #include "dsi_parser.h"
 #include <linux/pm_wakeup.h>
 #include <linux/project_info.h>
-#include <linux/msm_drm_notify.h>
-#include <linux/notifier.h>
+
+
 #include <linux/string.h>
 #include "dsi_drm.h"
 #include "dsi_display.h"
@@ -110,6 +114,11 @@ static char dsi_dsc_rc_range_max_qp_1_1_scr1[][15] = {
 static char dsi_dsc_rc_range_bpg_offset[] = {2, 0, 0, -2, -4, -6, -8, -8,
 		-8, -10, -10, -12, -12, -12, -12};
 
+static struct input_dev* brightness_input_dev = NULL;
+static struct proc_dir_entry *prEntry_tp = NULL;
+static int    screen_state_enable = 0;
+static int    screen_state;
+static int    screen_last_state = 3;
 static bool   hbm_finger_print = false;
 static int    hbm_brightness_flag = 0;
 static int    cur_backlight = -1;
@@ -408,7 +417,9 @@ static int dsi_panel_gpio_request(struct dsi_panel *panel)
 {
 	int rc = 0;
 	struct dsi_panel_reset_config *r_config = &panel->reset_config;
+	struct device_node *np;
 
+	np = panel->parent->of_node;
 	if (gpio_is_valid(r_config->reset_gpio)) {
 		rc = gpio_request(r_config->reset_gpio, "reset_gpio");
 		if (rc) {
@@ -438,6 +449,19 @@ static int dsi_panel_gpio_request(struct dsi_panel *panel)
 		if (rc) {
 			pr_err("request for mode_gpio failed, rc=%d\n", rc);
 			goto error_release_mode_sel;
+		}
+	}
+	panel->tp_enable1v8_gpio = of_get_named_gpio(np, "enable1v8_gpio", 0);
+	if (panel->tp_enable1v8_gpio < 0) {
+		pr_err("panel->tp_enable1v8_gpio not specified\n");
+	} else {
+		if (gpio_is_valid(panel->tp_enable1v8_gpio)) {
+			rc = gpio_request(panel->tp_enable1v8_gpio,
+					"tpvcc1v8-gpio");
+			if (rc) {
+				pr_err("unable to request gpio [%d], %d\n",
+					panel->tp_enable1v8_gpio, rc);
+			}
 		}
 	}
 
@@ -598,12 +622,14 @@ static int dsi_panel_power_on(struct dsi_panel *panel)
 		goto error_disable_vregs;
 	}
 
+
     if (!panel->lp11_init){
-		rc = dsi_panel_reset(panel);
-		if (rc) {
-			pr_err("[%s] failed to reset panel, rc=%d\n", panel->name, rc);
-			goto error_disable_gpio;
-		}
+
+	rc = dsi_panel_reset(panel);
+	if (rc) {
+		pr_err("[%s] failed to reset panel, rc=%d\n", panel->name, rc);
+		goto error_disable_gpio;
+	}
     }
 
 	goto exit;
@@ -749,17 +775,16 @@ error:
 static int dsi_panel_wled_register(struct dsi_panel *panel,
 		struct dsi_backlight_config *bl)
 {
-	int rc = 0;
 	struct backlight_device *bd;
 
 	bd = backlight_device_get_by_type(BACKLIGHT_RAW);
 	if (!bd) {
-		pr_err("[%s] fail raw backlight register\n", panel->name);
-		rc = -EINVAL;
+		pr_debug("[%s] backlight device list empty\n", panel->name);
+		return -EPROBE_DEFER;
 	}
 
 	bl->raw_bd = bd;
-	return rc;
+	return 0;
 }
 
 bool HBM_flag =false;
@@ -780,6 +805,7 @@ int dsi_panel_gamma_read_address_setting(struct dsi_panel *panel, u16 read_numbe
 
 	return rc;
 }
+
 
 static int dsi_panel_update_backlight(struct dsi_panel *panel,
 	u32 bl_lvl)
@@ -902,6 +928,24 @@ int dsi_panel_set_backlight(struct dsi_panel *panel, u32 bl_lvl)
 	struct dsi_backlight_config *bl = &panel->bl_config;
 
 	pr_debug("backlight type:%d lvl:%d\n", bl->type, bl_lvl);
+	if (panel->aod_status == 1)
+		screen_state = 2;
+	else if (bl_lvl > 0)
+		screen_state = 1;
+	else
+		screen_state = 0;
+
+	if (screen_state != screen_last_state) {
+		screen_last_state = screen_state;
+		if (screen_state_enable) {
+			input_event(brightness_input_dev, EV_MSC,
+					MSC_RAW, screen_state);
+			input_sync(brightness_input_dev);
+		}
+	}
+	//end add to report screen state to proximity sensor
+	printk(KERN_INFO"aod_status : %d, screen_state : %d, screen_last_state : %d \n", 
+					panel->aod_status, screen_state, screen_last_state);
 
 	switch (bl->type) {
 	case DSI_BACKLIGHT_WLED:
@@ -3576,17 +3620,10 @@ struct dsi_panel *dsi_panel_get(struct device *parent,
 		if (rc)
 			pr_err("failed to parse qsync features, rc=%d\n", rc);
 	}
-/*
-	if (panel->panel_mode == DSI_OP_VIDEO_MODE) {
-		rc = dsi_panel_parse_dyn_clk_caps(panel);
-		if (rc)
-			pr_err("failed to parse dynamic clk config, rc=%d\n",
-					rc);
-	}
-*/
+
 	rc = dsi_panel_parse_dyn_clk_caps(panel);
 	if (rc)
-	pr_err("failed to parse dynamic clk config, rc=%d\n", rc);
+		pr_err("failed to parse dynamic clk config, rc=%d\n", rc);
 
 	rc = dsi_panel_parse_phy_props(panel);
 	if (rc) {
@@ -3651,11 +3688,88 @@ void dsi_panel_put(struct dsi_panel *panel)
 	kfree(panel);
 }
 
+// read function of /proc/touchpanel/event_num
+static ssize_t bitghtness_event_num_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+    int ret = 0;
+    const char *devname = NULL;
+    struct input_handle *handle;
+    
+
+    if (!brightness_input_dev)
+        return count;
+    list_for_each_entry(handle, &(brightness_input_dev->h_list), d_node) {
+        if (strncmp(handle->name, "event", 5) == 0) {
+            devname = handle->name;
+            break;
+        }
+    } 
+
+    ret = simple_read_from_buffer(user_buf, count, ppos, devname, strlen(devname));
+    return ret;
+}
+
+static const struct file_operations bitghtness_event_num_fops = {
+    .read  = bitghtness_event_num_read,
+    .open  = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t screen_state_enable__read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{	
+	ssize_t ret =0;
+	char page[4];
+
+	pr_info("the screen_state_enable is: %d\n", screen_state_enable);
+	ret = sprintf(page, "%d\n", screen_state_enable);
+	ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+	return ret;
+
+}
+
+static ssize_t screen_state_enable_write(struct file *file, const char __user *buffer, size_t count, loff_t *ppos)
+{
+	char buf[8]={0};
+
+	if( count > 2)
+		count = 2;
+	if(copy_from_user(buf, buffer, count)){
+		pr_err("%s: read proc input error.\n", __func__);
+		return count;
+	}	
+	if('0' == buf[0]) {
+		screen_state_enable = 0;
+	} else if('1' == buf[0]){
+		screen_state_enable = 1;
+	}
+
+	//if (!screen_state_enable) {
+	//	//notify to epoll thread
+	//	input_event(brightness_input_dev, EV_MSC, MSC_RAW, 2);
+	//	input_sync(brightness_input_dev);
+	//}
+	return count;
+}
+
+static const struct file_operations screen_state_enable_fops = {
+    .read  = screen_state_enable__read,
+	.write = screen_state_enable_write,
+    .open  = simple_open,
+    .owner = THIS_MODULE,
+};
+
 int dsi_panel_drv_init(struct dsi_panel *panel,
 		       struct mipi_dsi_host *host)
 {
 	int rc = 0;
 	struct mipi_dsi_device *dev;
+	struct proc_dir_entry *prEntry_tmp  = NULL;
+	int ret = 0;
+
+	prEntry_tp = proc_mkdir("sensor", NULL);
+	if( prEntry_tp == NULL ){
+		pr_err("Couldn't create sensor directory\n");
+	}
 
 	if (!panel || !host) {
 		pr_err("invalid params\n");
@@ -3695,6 +3809,14 @@ int dsi_panel_drv_init(struct dsi_panel *panel,
 		       rc);
 		goto error_pinctrl_deinit;
 	}
+	if (panel->tp_enable1v8_gpio > 0) {
+		pr_err("enable tp 1v8 gpio\n");
+		ret = gpio_direction_output(panel->tp_enable1v8_gpio, 1);
+		if (ret) {
+			pr_err("enable the enable1v8_gpio failed.\n");
+			return ret;
+		}
+	}
 
 	rc = dsi_panel_bl_register(panel);
 	if (rc) {
@@ -3702,6 +3824,34 @@ int dsi_panel_drv_init(struct dsi_panel *panel,
 			pr_err("[%s] failed to register backlight, rc=%d\n",
 			       panel->name, rc);
 		goto error_gpio_release;
+	}
+
+	//create brightness_event_num
+	prEntry_tmp = proc_create("brightness_event_num", 0664, 
+		prEntry_tp, &bitghtness_event_num_fops);
+	if (prEntry_tmp == NULL) {
+		pr_err("Couldn't create tp_event_num_fops\n");
+	}
+	//create screen_state_enable
+	prEntry_tmp = proc_create("screen_state_enable", 0666, 
+		prEntry_tp, &screen_state_enable_fops);
+	if (prEntry_tmp == NULL) {
+		pr_err("Couldn't create screen_state_enable_fops\n");
+	}
+
+	//create input event	
+	brightness_input_dev  = input_allocate_device();
+	if (brightness_input_dev == NULL) {
+		pr_err("Failed to allocate ps input device\n");
+    }
+    brightness_input_dev->name = "oneplus,brightness";
+
+	set_bit(EV_MSC,  brightness_input_dev->evbit);
+	set_bit(MSC_RAW, brightness_input_dev->mscbit);
+
+	if (input_register_device(brightness_input_dev)) {
+		pr_err("%s: Failed to register brightness input device\n", __func__);
+		input_free_device(brightness_input_dev);
 	}
 
 	goto exit;
@@ -3749,6 +3899,11 @@ int dsi_panel_drv_deinit(struct dsi_panel *panel)
 
 	panel->host = NULL;
 	memset(&panel->mipi_device, 0x0, sizeof(panel->mipi_device));
+
+	//unregister_device
+	printk(KERN_ERR"unregister_device brightness_input_dev...\n");
+	input_unregister_device(brightness_input_dev);
+	input_free_device(brightness_input_dev);
 
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -3903,6 +4058,9 @@ int dsi_panel_get_mode(struct dsi_panel *panel,
 			goto parse_fail;
 		}
 
+		if (panel->panel_mode == DSI_OP_VIDEO_MODE)
+			mode->priv_info->mdp_transfer_time_us = 0;
+
 		rc = dsi_panel_parse_dsc_params(mode, utils);
 		if (rc) {
 			pr_err("failed to parse dsc params, rc=%d\n", rc);
@@ -3984,11 +4142,10 @@ int dsi_panel_get_host_cfg_for_mode(struct dsi_panel *panel,
 	config->video_timing.dsc_enabled = mode->priv_info->dsc_enabled;
 	config->video_timing.dsc = &mode->priv_info->dsc;
 
-//	config->bit_clk_rate_hz_override = mode->timing.clk_rate_hz;
 	if (dyn_clk_caps->dyn_clk_support)
-	config->bit_clk_rate_hz_override = mode->timing.clk_rate_hz;
+		config->bit_clk_rate_hz_override = mode->timing.clk_rate_hz;
 	else
-	config->bit_clk_rate_hz_override = mode->priv_info->clk_rate_hz;
+		config->bit_clk_rate_hz_override = mode->priv_info->clk_rate_hz;
 
 	config->esc_clk_rate_hz = 19200000;
 	mutex_unlock(&panel->panel_lock);
@@ -4056,7 +4213,7 @@ int dsi_panel_update_pps(struct dsi_panel *panel)
 		pr_err("invalid params\n");
 		return -EINVAL;
 	}
-
+//printk(KERN_ERR"dsi_panel_update_pps ++\n");
 	mutex_lock(&panel->panel_lock);
 
 	priv_info = panel->cur_mode->priv_info;
@@ -4078,6 +4235,7 @@ int dsi_panel_update_pps(struct dsi_panel *panel)
 	}
 
 	dsi_panel_destroy_cmd_packets(set);
+	//printk(KERN_ERR"dsi_panel_update_pps --\n");
 error:
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -4099,6 +4257,7 @@ int dsi_panel_set_lp1(struct dsi_panel *panel)
 		       panel->name, rc);
 	
 	panel->need_power_on_backlight = true;
+	
 
 	mutex_unlock(&panel->panel_lock);
 	return rc;
@@ -4328,6 +4487,7 @@ int dsi_panel_send_roi_dcs(struct dsi_panel *panel, int ctrl_idx,
 	mutex_unlock(&panel->panel_lock);
 
 	dsi_panel_destroy_cmd_packets(set);
+	dsi_panel_dealloc_cmd_packets(set);
 
 	return rc;
 }
@@ -4572,6 +4732,16 @@ int dsi_panel_unprepare(struct dsi_panel *panel)
 		       panel->name, rc);
 		goto error;
 	}
+/*
+	if (panel->lp11_init) {
+		rc = dsi_panel_power_off(panel);
+		if (rc) {
+			pr_err("[%s] panel power_Off failed, rc=%d\n",
+			       panel->name, rc);
+			goto error;
+		}
+	}
+	*/
 
 error:
 	mutex_unlock(&panel->panel_lock);
@@ -4730,6 +4900,12 @@ int dsi_panel_set_hbm_brightness(struct dsi_panel *panel, int level)
 
 	dsi = &panel->mipi_device;
 	mode = panel->cur_mode;
+
+	if (panel->is_hbm_enabled) {
+		hbm_finger_print = true;
+		pr_err("HBM is enabled\n");
+		return 0;
+	}
 
 	if (hbm_brightness_flag == 0) {
 		count = mode->priv_info->cmd_sets[DSI_CMD_SET_HBM_BRIGHTNESS_ON].count;

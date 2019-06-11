@@ -1,17 +1,15 @@
-/***************************************************
-* File:synaptics_drivers_td4310.h
-* Copyright(C) 2008-2012 OPPO Mobile Comm Corp., Ltd
-* Description:
-*             synaptics td4310 driver
-* Version:1.0:
-* Date created:2017/04/17
-* Author: MingQiang.Guo@Bsp.Driver
-* TAG: BSP.TP.Init
-* *
-* -------------- Revision History: -----------------
-<author >  <data>  <version>  <desc>
-****************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : synaptics_td4310.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by synaptics
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SYNAPTICS_H_TD4310
 #define SYNAPTICS_H_TD4310
 

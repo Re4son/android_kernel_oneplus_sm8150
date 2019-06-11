@@ -1402,8 +1402,8 @@ static void  camera_position_detect_work(struct work_struct* work)
 	int            down_stop_times = 0;
 	int            abnormal_judge_time = 400000;//400ms default
 	int            data_count = 0;
-	int            deltad_range_low = -10;
-	int            deltad_range_high = 10;
+	int            deltad_range_low = -5;
+	int            deltad_range_high = 5;
 	unsigned long  enter_deltad_first_time = 0;
 	bool           mag_noise = false;
 	bool           append_to_line = false;
@@ -3050,36 +3050,38 @@ static int motor_platform_probe(struct platform_device* pdev)
 
 	if (chip->hall_up_ops == NULL || chip->hall_down_ops == NULL) {
 		MOTOR_ERR("no digital hall available \n");
-		//goto fail;
+		goto fail;
 	}
 
 	if (chip->motor_ops == NULL) {
 		MOTOR_ERR("no motor driver available \n");
-		//goto fail;
+		goto fail;
 	}
-	//create
+	//create 
 	err = sysfs_create_group(&pdev->dev.kobj, &__attribute_group);
 	if(err) {
 		MOTOR_ERR("sysfs_create_group failed, err : %d \n", err);
 		goto sysfs_create_fail;
 	}
 
+
+
 	err = oneplus_input_dev_init(chip);
 	if (err < 0) {
 		MOTOR_ERR("oneplus_input_dev_init failed, err : %d \n", err);
-		//goto input_fail;
+		goto input_fail;
 	}
 
-  	chip->motor_run_work_wq = create_singlethread_workqueue("motor_run_work_wq");
-  	if (chip->motor_run_work_wq == NULL) {
+  	chip->motor_run_work_wq = create_singlethread_workqueue("motor_run_work_wq");  
+  	if (chip->motor_run_work_wq == NULL) {                                         
   		MOTOR_ERR("create_singlethread_workqueue failed, motor_run_work_wq == NULL \n");
-		//goto input_fail;
-  	}
+  		goto input_fail;                                                             
+  	} 
 
 	chip->manual2auto_wq = create_singlethread_workqueue("manual2auto_wq");
 	if (!chip->manual2auto_wq) {
 	    MOTOR_ERR("create_singlethread_workqueue failed, manual2auto_wq == NULL \n");
-		//goto input_fail;
+		goto input_fail;
 	}
 
     oneplus_motor_free_fall_register(chip);
@@ -3116,9 +3118,9 @@ static int motor_platform_probe(struct platform_device* pdev)
 	MOTOR_LOG("success. \n");
 	return 0;
 
-//input_fail:
+input_fail:
 sysfs_create_fail:
-//fail:
+fail:
 	kfree(chip);
 	g_the_chip = NULL;
 	MOTOR_LOG("fail \n");

@@ -64,22 +64,18 @@ unsigned int tristate_extcon_tab[] = {
 		MODE_NORMAL,
 	};
 
-static struct hrtimer tri_key_timer;
-struct work_struct tri_key_timeout_work;
-
 static struct extcon_dev_data *g_the_chip = NULL;
 static int last_d0 = 0;
 static int last_d1 = 0;
 static int last_position = -1;
 static int last_interf = -1;
 static int interf_count;
-static int time = 1;
 //static int up_buf[20] = {0};
 //static int down_buf[20] = {0};
 
-//static short tol0 = 10;
+static short tol0 = 10;
 static short tol1 = 15;
-static short tol2 = 22;
+//static short tol2 =5;
 static short calib_UpValueSum = 0, calib_MdValueSum = 0, calib_DnValueSum = 0;
 static short calib_UpValueMin = 0, calib_MdValueMin = 0, calib_DnValueMin = 0;
 static short calib_dnHall_UM_distance = 0, calib_dnHall_MD_distance = 0;
@@ -389,41 +385,41 @@ static int interf_get_position(struct extcon_dev_data *chip)
 	delta1 = chip->dhall_data1 - last_d1;
 	MOTOR_LOG("tri_key: delta0 is %d ,delta1 is %d,last_postion is %d\n",
 			delta0, delta1, last_position);
-	if ((delta1 > calib_upHall_UM_distance - tol1 &&
-			delta1 < calib_upHall_UM_distance + tol1) &&
-			(delta0 > calib_dnHall_UM_distance - tol1 &&
-			delta0 < calib_dnHall_UM_distance + tol1)) {
+	if ((delta1 > calib_upHall_UM_distance - tol0 &&
+			delta1 < calib_upHall_UM_distance + tol0) &&
+			(delta0 > calib_dnHall_UM_distance - tol0 &&
+			delta0 < calib_dnHall_UM_distance + tol0)) {
 		if (last_position == MID_STATE)
 			return UP_STATE;
 			}
-	if ((delta1 > calib_upHall_UD_distance - tol1 &&
-		delta1 < calib_upHall_UD_distance + tol1) &&
-		(delta0 > calib_dnHall_UD_distance - tol1 &&
-		delta0 < calib_dnHall_UD_distance + tol1))
+	if ((delta1 > calib_upHall_UD_distance - tol0 &&
+		delta1 < calib_upHall_UD_distance + tol0) &&
+		(delta0 > calib_dnHall_UD_distance - tol0 &&
+		delta0 < calib_dnHall_UD_distance + tol0))
 		return UP_STATE;
-	if ((delta1 > -calib_upHall_MD_distance - tol1 &&
-		delta1 < -calib_upHall_MD_distance + tol1) &&
-		(delta0 > -calib_dnHall_MD_distance - tol1 &&
-		delta0 < -calib_dnHall_MD_distance + tol1)) {
+	if ((delta1 > -calib_upHall_MD_distance - tol0 &&
+		delta1 < -calib_upHall_MD_distance + tol0) &&
+		(delta0 > -calib_dnHall_MD_distance - tol0 &&
+		delta0 < -calib_dnHall_MD_distance + tol0)) {
 		if (last_position == MID_STATE)
 			return DOWN_STATE;
 			}
-	if ((delta1 > -calib_upHall_UD_distance - tol1 &&
-		delta1 < -calib_upHall_UD_distance + tol1) &&
-		(delta0 > -calib_dnHall_UD_distance - tol1 &&
-		delta0 < -calib_dnHall_UD_distance + tol1))
+	if ((delta1 > -calib_upHall_UD_distance - tol0 &&
+		delta1 < -calib_upHall_UD_distance + tol0) &&
+		(delta0 > -calib_dnHall_UD_distance - tol0 &&
+		delta0 < -calib_dnHall_UD_distance + tol0))
 		return DOWN_STATE;
-	if ((delta1 > -calib_upHall_UM_distance - tol1 &&
-		delta1 < -calib_upHall_UM_distance + tol1) &&
-		(delta0 > -calib_dnHall_UM_distance - tol1 &&
-		delta0 < -calib_dnHall_UM_distance + tol1)) {
+	if ((delta1 > -calib_upHall_UM_distance - tol0 &&
+		delta1 < -calib_upHall_UM_distance + tol0) &&
+		(delta0 > -calib_dnHall_UM_distance - tol0 &&
+		delta0 < -calib_dnHall_UM_distance + tol0)) {
 		if (last_position == UP_STATE)
 			return MID_STATE;
 			}
-	if ((delta1 > calib_upHall_MD_distance - tol1 &&
-		delta1 < calib_upHall_MD_distance + tol1) &&
-		(delta0 > calib_dnHall_MD_distance - tol1 &&
-		delta0 < calib_dnHall_MD_distance + tol1)) {
+	if ((delta1 > calib_upHall_MD_distance - tol0 &&
+		delta1 < calib_upHall_MD_distance + tol0) &&
+		(delta0 > calib_dnHall_MD_distance - tol0 &&
+		delta0 < calib_dnHall_MD_distance + tol0)) {
 		if (last_position == DOWN_STATE)
 			return MID_STATE;
 			}
@@ -435,41 +431,22 @@ static int get_position(struct extcon_dev_data *chip)
 {
 	short diff;
 	diff = chip->dhall_data1 - chip->dhall_data0;
-	if (chip->dhall_data0 > 0) {
-		if (diff > calib_UpValueMin - tol1 &&
-			diff < calib_UpValueMin + tol2)
-			chip->position = UP_STATE;
-		if (calib_MdValueMin < 0) {
-			if (diff > calib_MdValueMin - tol1 &&
+
+	if (diff > calib_UpValueMin - tol1 && diff < calib_UpValueMin + tol1)
+		chip->position = UP_STATE;
+	if(calib_MdValueMin < 0){
+		if (diff > calib_MdValueMin - tol1 &&
 				diff < calib_MdValueMin + tol1)
-				chip->position = MID_STATE;
-			}
-		if (calib_MdValueMin > 0 || calib_MdValueMin == 0) {
-			if (diff > calib_MdValueMin - tol1 &&
+			chip->position = MID_STATE;
+		}
+	if(calib_MdValueMin > 0 || calib_MdValueMin == 0){
+		if (diff > calib_MdValueMin - tol1 &&
 				diff < calib_MdValueMin + tol1)
-				chip->position = MID_STATE;
-			}
-		if (diff > calib_DnValueMin - tol2 &&
-				diff < calib_DnValueMin + tol1)
-			chip->position = DOWN_STATE;
-	} else {
-		if (diff > calib_UpValueMin - tol2 &&
-				diff < calib_UpValueMin + tol1)
-			chip->position = UP_STATE;
-		if (calib_MdValueMin < 0) {
-			if (diff > calib_MdValueMin - tol1 &&
-				diff < calib_MdValueMin + tol1)
-				chip->position = MID_STATE;
-			}
-		if (calib_MdValueMin > 0 || calib_MdValueMin == 0) {
-			if (diff > calib_MdValueMin - tol1 &&
-				diff < calib_MdValueMin + tol1)
-				chip->position = MID_STATE;
-			}
-		if (diff > calib_DnValueMin - tol1 &&
-			diff < calib_DnValueMin + tol2)
-			chip->position = DOWN_STATE;
-	}
+			chip->position = MID_STATE;
+		}
+
+	if (diff > calib_DnValueMin - tol1 && diff < calib_DnValueMin + tol1)
+		chip->position = DOWN_STATE;
 	return 0;
 }
 
@@ -481,143 +458,64 @@ static int judge_interference(struct extcon_dev_data *chip)
 	MOTOR_LOG("tri_key:delta is %d\n", delta);
 	sum = chip->dhall_data0 + chip->dhall_data1;
 	MOTOR_LOG("tri_key:sum is %d\n", sum);
-	if (chip->dhall_data1 > 0) {//the hall data is positive number
-		if (delta > calib_UpValueMin - tol1 &&
-			delta < calib_UpValueMin + tol2) {
-			MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-				calib_UpValueMin, calib_UpValueSum);
-			if (sum < calib_UpValueSum - tol1 ||
-				sum > calib_UpValueSum + tol2) {
-				chip->interf = 1;
-				chip->state = 1;
-			} else {
-				chip->interf = 0;
-				chip->state = 1;
-			}
+	if (delta > calib_UpValueMin - tol1 && delta < calib_UpValueMin + tol1) {
+		if (sum < calib_UpValueSum - tol0 || sum > calib_UpValueSum + tol1) {
+			chip->interf = 1;
+			chip->state = 1;
+			return 0;
+		} else {
+			chip->interf = 0;
+			chip->state = 1;
 			return 0;
 		}
-		if (calib_MdValueMin < 0) {
-			if (delta > calib_MdValueMin - tol1 &&
-				delta < calib_MdValueMin + tol1) {
-				MOTOR_LOG("tri_key:calibMin:%d,calib_Sum:%d\n",
-					calib_MdValueMin, calib_MdValueSum);
-
-				if (sum > calib_MdValueSum + tol2 ||
-					sum < calib_MdValueSum - tol1) {
-					chip->interf = 1;
-					chip->state = 2;
-				} else {
-					chip->interf = 0;
-					chip->state = 2;
-				}
-				return 0;
-			}
-		}
-		if (calib_MdValueMin > 0 || calib_MdValueMin == 0) {
-			if (delta > calib_MdValueMin - tol1 &&
-				delta < calib_MdValueMin + tol1) {
-				MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-					calib_MdValueMin, calib_MdValueSum);
-
-				if (sum > calib_MdValueSum + tol2 ||
-					sum < calib_MdValueSum - tol1) {
-					chip->interf = 1;
-					chip->state = 2;
-				} else {
-					chip->interf = 0;
-					chip->state = 2;
-					}
-				return 0;
-				}
-			}
-		if (delta > calib_DnValueMin - tol2 &&
-				delta < calib_DnValueMin + tol1) {
-			MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-				calib_DnValueMin, calib_DnValueSum);
-
-			if (sum < calib_DnValueSum - tol1 ||
-				sum > calib_DnValueSum + tol2) {
-				chip->interf = 1;
-				chip->state = 3;
-			} else {
-				chip->interf = 0;
-				chip->state = 3;
-			}
-			return 0;
-		}
-		chip->interf = 1;
-		chip->state = 0;
-	} else {//the hall data is negative number
-		if (delta > calib_UpValueMin - tol2 &&
-			delta < calib_UpValueMin + tol1) {
-			MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-				calib_UpValueMin, calib_UpValueSum);
-
-			if (sum < calib_UpValueSum - tol2 ||
-				sum > calib_UpValueSum + tol1) {
-				chip->interf = 1;
-				chip->state = 1;
-			} else {
-				chip->interf = 0;
-				chip->state = 1;
-			}
-			return 0;
-		}
-		if (calib_MdValueMin < 0) {
-			if (delta > calib_MdValueMin - tol1 &&
-				delta < calib_MdValueMin + tol1) {
-				MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-					calib_MdValueMin, calib_MdValueSum);
-
-				if (sum > calib_MdValueSum + tol1 ||
-					sum < calib_MdValueSum - tol2) {
-					chip->interf = 1;
-					chip->state = 2;
-				} else {
-					chip->interf = 0;
-					chip->state = 2;
-				}
-				return 0;
-			}
-		}
-		if (calib_MdValueMin > 0 || calib_MdValueMin == 0) {
-			if (delta > calib_MdValueMin - tol1 &&
-				delta < calib_MdValueMin + tol1) {
-				MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-					calib_MdValueMin, calib_MdValueSum);
-
-				if (sum > calib_MdValueSum + tol1 ||
-					sum < calib_MdValueSum - tol2) {
-					chip->interf = 1;
-					chip->state = 2;
-				} else {
-					chip->interf = 0;
-					chip->state = 2;
-					}
-				return 0;
-				}
-			}
-		if (delta > calib_DnValueMin - tol1 &&
-				delta < calib_DnValueMin + tol2) {
-			MOTOR_LOG("tri_key:calib_Min:%d,calib_Sum:%d\n",
-				calib_DnValueMin, calib_DnValueSum);
-
-			if (sum < calib_DnValueSum - tol2 ||
-				sum > calib_DnValueSum + tol1) {
-				chip->interf = 1;
-				chip->state = 3;
-			} else {
-				chip->interf = 0;
-				chip->state = 3;
-			}
-			return 0;
-		}
-		chip->interf = 1;
-		chip->state = 0;
 	}
-	return -EINVAL;
 
+	if(calib_MdValueMin < 0){
+		if (delta > calib_MdValueMin - tol1 &&
+				delta < calib_MdValueMin + tol1) {
+			if (sum > calib_MdValueSum + tol1 || sum < calib_MdValueSum - tol1) {
+				chip->interf = 1;
+				chip->state = 2;
+				return 0;
+			} else {
+				chip->interf = 0;
+				chip->state = 2;
+				return 0;
+			}
+		}
+	}
+	if (calib_MdValueMin > 0 || calib_MdValueMin == 0) {
+		if (delta > calib_MdValueMin - tol1 &&
+				delta < calib_MdValueMin + tol1) {
+			if (sum > calib_MdValueSum + tol1 ||
+					sum < calib_MdValueSum - tol1) {
+				chip->interf = 1;
+				chip->state = 2;
+				return 0;
+			} else {
+				chip->interf = 0;
+				chip->state = 2;
+				return 0;
+				}
+			}
+		}
+
+	if (delta > calib_DnValueMin - tol1 && delta < calib_DnValueMin + tol1) {
+		if (sum < calib_DnValueSum - tol1 || sum > calib_DnValueSum + tol1) {
+			chip->interf = 1;
+			chip->state = 3;
+			return 0;
+		} else {
+			chip->interf = 0;
+			chip->state = 3;
+			return 0;
+		}
+	}
+	chip->interf = 1;
+	chip->state = 0;
+	return -EINVAL;
 }
+
 
 
 static int oneplus_get_data(struct extcon_dev_data *chip)
@@ -819,8 +717,9 @@ static void tri_key_dev_work(struct work_struct *work)
 	res = judge_interference(chip);
 	MOTOR_LOG("tri_key:chip->interf is %d ,chip->state is %d\n",
 					chip->interf, chip->state);
-	if (!last_interf && chip->interf) {
-		msleep(500);
+	if ((last_position == UP_STATE || last_position == DOWN_STATE)
+		&& chip->interf) {
+		msleep(100);
 		oneplus_get_data(chip);
 		MOTOR_LOG("tri_key:data1 is %d, data0 is %d\n",
 					chip->dhall_data1, chip->dhall_data0);
@@ -829,8 +728,6 @@ static void tri_key_dev_work(struct work_struct *work)
 	}
 //get position
 	if (!chip->interf) {
-		hrtimer_cancel(&tri_key_timer);
-		time = 1;
 		if (!last_interf) {
 			interf_count = 0;
 			get_position(chip);
@@ -846,10 +743,6 @@ static void tri_key_dev_work(struct work_struct *work)
 			}
 		}
 	else {
-		hrtimer_cancel(&tri_key_timer);
-		MOTOR_LOG("tri_key:time0 is %d\n", time);
-		hrtimer_start(&tri_key_timer, ktime_set(time, 0),
-			HRTIMER_MODE_REL);
 		while (count < 4) {
 			msleep(35);
 			oneplus_hall_get_data(DHALL_0);
@@ -889,8 +782,7 @@ static void tri_key_dev_work(struct work_struct *work)
 				goto FINAL;
 			}
 			MOTOR_LOG("tri_key:inconstantlt interference\n");
-			//last_interf = chip->interf;
-			reupdata_threshold(chip);
+			last_interf = chip->interf;
 			goto FINAL;
 		}
 
@@ -990,6 +882,8 @@ static ssize_t dhall_data_show(struct device *dev,
 		sys_close(fd);
 	}
 */
+	MOTOR_ERR("dhall0 data %d dhall1 data %d\n",
+			g_the_chip->dhall_data0, g_the_chip->dhall_data1);
 
 	return snprintf(buf, PAGE_SIZE, "%d, %d\n",
 		g_the_chip->dhall_data0, g_the_chip->dhall_data1);
@@ -1006,40 +900,11 @@ static ssize_t tri_state_show(struct device *dev,
 	}
 	oneplus_hall_get_data(DHALL_0);
 	oneplus_hall_get_data(DHALL_1);
-//	judge_interference(g_the_chip);
+	judge_interference(g_the_chip);
 	//position = get_position(g_the_chip);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", g_the_chip->state);
 }
-
-static enum hrtimer_restart tri_key_status_timeout(struct hrtimer *timer)
-{
-	schedule_work(&tri_key_timeout_work);
-	return HRTIMER_NORESTART;
-}
-
-static void tri_key_timeout_work_func(struct work_struct *work)
-{
-	oneplus_get_data(g_the_chip);
-	judge_interference(g_the_chip);
-	if (g_the_chip->interf) {
-		time = time * 2;
-		MOTOR_LOG("tri_key:time1 is %d\n", time);
-		if (time > 2)
-			time = 2;
-		}
-	else {
-		get_position(g_the_chip);
-		if (g_the_chip->position == last_position)
-			return;
-		reupdata_threshold(g_the_chip);
-		report_key_value(g_the_chip);
-		last_position = g_the_chip->position;
-		time = 1;
-		}
-	return;
-}
-
 
 static short Sum(short value0, short value1)
 {
@@ -1164,20 +1029,17 @@ static int tri_key_platform_probe(struct platform_device *pdev)
 		MOTOR_ERR("no dhall available\n");
 		goto fail;
 	}
-// extcon registration
+
+	/* extcon registration */
 	chip->edev = devm_extcon_dev_allocate(chip->dev, tristate_extcon_tab);
 	chip->edev->name = "tri_state_key";
-	err = devm_extcon_dev_register(chip->dev, chip->edev);
 
+	err = devm_extcon_dev_register(chip->dev, chip->edev);
 	if (err < 0) {
 		MOTOR_ERR("%s register extcon dev failed\n", __func__);
 		goto err_extcon_dev_register;
-	}
-
+		}
 	INIT_WORK(&chip->dwork, tri_key_dev_work);
-	hrtimer_init(&tri_key_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-	tri_key_timer.function = tri_key_status_timeout;
-	INIT_WORK(&tri_key_timeout_work, tri_key_timeout_work_func);
 //get data when reboot
 	res = oneplus_get_data(chip);
 	if (res < 0) {

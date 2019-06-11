@@ -52,6 +52,7 @@ static bool mtp_receive_flag;
 #define MAX_INST_NAME_LEN          40
 #define MTP_MAX_FILE_SIZE          0xFFFFFFFFL
 
+/*OP fix device crash when setting MTP as usb mode use fixed memory */
 #define MTP_TX_BUFFER_BASE         0xAC300000
 #define MTP_RX_BUFFER_BASE         0xACB00000
 #define MTP_INTR_BUFFER_BASE       0xACD00000
@@ -409,6 +410,7 @@ static inline struct mtp_dev *func_to_mtp(struct usb_function *f)
 	return container_of(f, struct mtp_dev, function);
 }
 
+/*OP fix device crash when setting MTP as usb mode use fixed memory */
 static struct usb_request *mtp_request_new(struct usb_ep *ep,
 		int buffer_size, enum buf_type type)
 
@@ -1055,6 +1057,8 @@ static void receive_file_work(struct work_struct *data)
 				r = -EIO;
 				if (dev->state != STATE_OFFLINE)
 					dev->state = STATE_ERROR;
+				if (read_req && !dev->rx_done)
+					usb_ep_dequeue(dev->ep_out, read_req);
 				break;
 			}
 			dev->perf[dev->dbg_write_index].vfs_wtime =

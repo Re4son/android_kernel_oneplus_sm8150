@@ -1,17 +1,3 @@
-/***************************************************
- * File:synaptics_common.c
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             synaptics common driver
- * Version:1.0:
- * Date created:2016/09/02
- * Author: Tong.han@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
 #include "../touchpanel_common.h"
 #include "synaptics_common.h"
 #include <linux/crc32.h>

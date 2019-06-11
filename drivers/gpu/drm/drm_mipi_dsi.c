@@ -658,6 +658,7 @@ EXPORT_SYMBOL(mipi_dsi_generic_read);
 //				  const void *data, size_t len)
 ssize_t mipi_dsi_dcs_write_buffer(struct mipi_dsi_device *dsi,
 				  void *data, size_t len)
+
 {
 	struct mipi_dsi_msg msg = {
 		.channel = dsi->channel,

@@ -1,16 +1,3 @@
-/*****************************************************************************************
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * File       : fts.c
- * Description: Source file for ST fst1ba90a driver
- * Version   : 1.0
- * Date        : 2018-10-18
- * Author    : Zengpeng.Chen@Bsp.Group.Tp
- * TAG         : BSP.TP.Init
- * ---------------- Revision History: --------------------------
- *   <version>    <date>          < author >                            <desc>
- *******************************************************************************************/
-
-
 #include <linux/device.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -1084,7 +1071,7 @@ static int fts_get_face_detect(void * chip_data)
 }
 
 /* fts callback func file ops */
-static struct oppo_touchpanel_operations fts_ops = {
+static struct touchpanel_operations fts_ops = {
     .get_vendor       = fts_get_vendor,
     .get_chip_info    = fts_get_chip_info,
     .reset            = fts_reset,

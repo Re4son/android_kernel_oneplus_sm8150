@@ -228,6 +228,7 @@
 
 /*------------------------------------------------------------------------*/
 
+/* Anderson@, 2016/09/21, CD-ROM and VID customized */
 #define PAGE_CACHE_SIZE PAGE_SIZE
 #define FSG_DRIVER_DESC		"Mass Storage Function"
 #define FSG_DRIVER_VERSION	"2009/09/11"
@@ -1177,6 +1178,7 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
 	return 8;
 }
 
+/* Anderson@, 2016/09/21, CD-ROM and VID customized */
 static void _lba_to_msf(u8 *buf, int lba)
 {
 	lba += 150;
@@ -2178,12 +2180,14 @@ static int do_scsi_command(struct fsg_common *common)
 		common->data_size_from_cmnd =
 			get_unaligned_be16(&common->cmnd[7]);
 
+/* Anderson@, 2016/09/21, CD-ROM and VID customized */
 		reply = check_command(common, 10, DATA_DIR_TO_HOST,
 				      (0xf<<6) | (1<<1), 1,
 				      "READ TOC");
 		if (reply == 0)
 			reply = do_read_toc(common, bh);
 		break;
+/* Anderson@, 2016/09/21, CD-ROM and VID customized */
 	case READ_CD:
 		common->data_size_from_cmnd = ((common->cmnd[6] << 16)
 						| (common->cmnd[7] << 8)
@@ -3153,6 +3157,7 @@ void fsg_common_set_inquiry_string(struct fsg_common *common, const char *vn,
 		     ? "File-CD Gadget"
 		     : "File-Stor Gadget"),
 		 i);
+/* Anderson@, 2016/09/21, CD-ROM and VID customized */
 	snprintf(common->inquiry_string,
 		sizeof(common->inquiry_string),
 		"%s",  "OnePlus Device Driver");
@@ -3664,6 +3669,7 @@ static struct usb_function_instance *fsg_alloc_inst(void)
 
 	memset(&config, 0, sizeof(config));
 	config.removable = true;
+/*enable cdrom config to read usb_driver.iso in PC;CD-ROM and VID customized*/
 	config.cdrom = true;
 	config.ro = true;
 	rc = fsg_common_create_lun(opts->common, &config, 0, "lun.0",

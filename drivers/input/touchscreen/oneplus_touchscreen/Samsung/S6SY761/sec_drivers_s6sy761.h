@@ -1,17 +1,15 @@
-/***************************************************
- * File:sec_drivers_s6sy761.h
- * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
- * Description:
- *             samsung s6sy761 driver
- * Version:1.0:
- * Date created:2018/01/10
- * Author: Cong.Dai@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
- *  <author >  <data>  <version>  <desc>
- ***************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : sec_drivers_s6sy761.h 
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by LSI
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SEC_H_S6SY761
 #define SEC_H_S6SY761
 
@@ -120,7 +118,8 @@
 #define SEC_CMD_FLASH_READ_ADDR                 0xD0
 #define SEC_CMD_FLASH_READ_SIZE                 0xD1
 #define SEC_CMD_FLASH_READ_DATA                 0xD2
-#define SEC_CMD_WAKEUP_GESTURE_MODE             0x65
+#define SEC_CMD_WAKEUP_GESTURE_MODE             0x39
+#define SEC_CMD_DISABLE_GESTURE_MODE            0x65
 #define SEC_CMD_SET_POWER_MODE                  0xE4
 #define SET_CMD_SET_CHARGER_MODE                0x32
 #define SEC_CMD_READ_CALIBRATION_REPORT         0xF1

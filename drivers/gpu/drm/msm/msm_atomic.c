@@ -80,6 +80,7 @@ int msm_drm_notifier_call_chain(unsigned long val, void *v)
 }
 EXPORT_SYMBOL(msm_drm_notifier_call_chain);
 
+
 /* block until specified crtcs are no longer pending update, and
  * atomically mark them as pending update
  */

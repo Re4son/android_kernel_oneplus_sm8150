@@ -131,7 +131,7 @@ struct dsi_backlight_config {
 	u32 pwm_pmic_bank;
 	u32 pwm_period_usecs;
 	int pwm_gpio;
-	bool bl_high2bit;
+		bool bl_high2bit;
 	u32 bl_def_val;
 
 	/* WLED params */

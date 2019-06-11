@@ -947,6 +947,7 @@ static int dsi_ctrl_copy_and_pad_cmd(struct dsi_ctrl *dsi_ctrl,
 	int rc = 0;
 	u8 *buf = NULL;
 	u32 len, i;
+	u8 cmd_type = 0;
 
 	len = packet->size;
 	len += 0x3; len &= ~0x03; /* Align to 32 bits */
@@ -969,7 +970,11 @@ static int dsi_ctrl_copy_and_pad_cmd(struct dsi_ctrl *dsi_ctrl,
 
 
 	/* send embedded BTA for read commands */
-	if ((buf[2] & 0x3f) == MIPI_DSI_DCS_READ)
+	cmd_type = buf[2] & 0x3f;
+	if ((cmd_type == MIPI_DSI_DCS_READ) ||
+	    (cmd_type == MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM) ||
+	    (cmd_type == MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM) ||
+	    (cmd_type == MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM))
 		buf[3] |= BIT(5);
 
 	*buffer = buf;
@@ -1533,7 +1538,7 @@ static int dsi_message_rx(struct dsi_ctrl *dsi_ctrl,
 	cmd = buff[0];
 	switch (cmd) {
 	case MIPI_DSI_RX_ACKNOWLEDGE_AND_ERROR_REPORT:
-		pr_err("Rx ACK_ERROR\n");
+		pr_err("Rx ACK_ERROR 0x%x\n", cmd);
 		rc = 0;
 		break;
 	case MIPI_DSI_RX_GENERIC_SHORT_READ_RESPONSE_1BYTE:
@@ -1549,7 +1554,7 @@ static int dsi_message_rx(struct dsi_ctrl *dsi_ctrl,
 		rc = dsi_parse_long_read_resp(msg, buff);
 		break;
 	default:
-		pr_warn("Invalid response\n");
+		pr_warn("Invalid response: 0x%x\n", cmd);
 		rc = 0;
 	}
 

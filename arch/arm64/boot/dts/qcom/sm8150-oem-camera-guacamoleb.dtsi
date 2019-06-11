@@ -143,29 +143,22 @@
         cell-index = <2>;
         reg = <2>;
         compatible = "qcom,ois";
-        cam_vio-supply = <&pm8150l_l1>;
-        cam_vdig-supply = <&pm8150l_s8>;
         cam_vaf-supply = <&pm8150l_bob>;
-        regulator-names = "cam_vio", "cam_vdig", "cam_vaf";
+        regulator-names = "cam_vaf";
         rgltr-cntrl-support;
-        rgltr-min-voltage = <0 1352000 3300000>;
-        rgltr-max-voltage = <0 1352000 3300000>;
-        rgltr-load-current = <0 1100000 0>;
+        rgltr-min-voltage = <3300000>;
+        rgltr-max-voltage = <3300000>;
+        rgltr-load-current = <0>;
         gpio-no-mux = <0>;
         use-shared-clk;
  	pinctrl-names = "cam_default", "cam_suspend";
-        pinctrl-0 = <&cam_sensor_rear_0_ois_active
-		&cam_sensor_rear_0_dvdd_active>;
-        pinctrl-1 = <&cam_sensor_rear_0_ois_suspend
-		&cam_sensor_rear_0_dvdd_suspend>;
-        gpios = <&tlmm 87 0>,
-		<&tlmm 24 0>;
+        pinctrl-0 = <&cam_sensor_rear_0_ois_active>;
+        pinctrl-1 = <&cam_sensor_rear_0_ois_suspend>;
+        gpios = <&tlmm 87 0>;
 	gpio-vaf = <0>;
-	gpio-vdig = <1>;
-        gpio-req-tbl-num = <0 1>;
-        gpio-req-tbl-flags = <0 0>;
-        gpio-req-tbl-label = "OIS_REAR_0",
-		"CAM_VDIG";
+        gpio-req-tbl-num = <1>;
+        gpio-req-tbl-flags = <0>;
+        gpio-req-tbl-label = "OIS_REAR_0";
         cci-device = <0>;
         cci-master = <1>;
         status = "ok";
@@ -238,29 +231,24 @@
         pinctrl-names = "cam_default", "cam_suspend";
         pinctrl-0 = <&cam_sensor_rear_1_rest_active
             &cam_sensor_rear_1_ana_active
-	    &cam_sensor_rear_1_dvdd_active
-	    &cam_sensor_rear_0_ois_active>;
+	    &cam_sensor_rear_1_dvdd_active>;
         pinctrl-1 = <&cam_sensor_rear_1_rest_suspend
             &cam_sensor_rear_1_ana_suspend
-	    &cam_sensor_rear_1_dvdd_suspend
-	    &cam_sensor_rear_0_ois_suspend>;
+	    &cam_sensor_rear_1_dvdd_suspend>;
         gpios = <&tlmm 13 0>,
             <&tlmm 28 0>,
             <&tlmm 148 0>,
-	    <&pm8150l_gpios 2 GPIO_ACTIVE_HIGH>,
-	    <&tlmm 87 0>;
+	    <&pm8150l_gpios 2 GPIO_ACTIVE_HIGH>;
         use-shared-clk;
         gpio-reset = <1>;
         gpio-vana = <2>;
 	gpio-vdig = <3>;
-	gpio-custom1 = <4>;
-        gpio-req-tbl-num = <0 1 2 3 0>;
-        gpio-req-tbl-flags = <1 0 0 0 0>;
+        gpio-req-tbl-num = <0 1 2 3>;
+        gpio-req-tbl-flags = <1 0 0 0>;
         gpio-req-tbl-label = "CAMIF_MCLK0",
             "CAM_RESET1",
             "CAM_VANA_1",
-	    "CAM_VDIG_1",
-	    "OIS_REAR_0";
+	    "CAM_VDIG_1";
         sensor-mode = <0>;
         cci-device = <0>;
         cci-master = <0>;
@@ -333,45 +321,51 @@
         cam_vio-supply = <&pm8150l_l1>;
         cam_vana-supply = <&pm8150l_bob>;
         cam_vdig-supply = <&pm8150l_s8>;
+        cam_vaf-supply = <&pm8150l_bob>;
         cam_clk-supply = <&titan_top_gdsc>;
-        regulator-names = "cam_vio", "cam_vana", "cam_vdig",
+        regulator-names = "cam_vio", "cam_vana", "cam_vdig","cam_vaf",
             "cam_clk";
         rgltr-cntrl-support;
-        rgltr-min-voltage = <0 3300000 1352000 0>;
-        rgltr-max-voltage = <0 3300000 1352000 0>;
-        rgltr-load-current = <0 80000 1100000 0>;
+        rgltr-min-voltage = <0 3300000 1352000 3300000 0>;
+        rgltr-max-voltage = <0 3300000 1352000 3300000 0>;
+        rgltr-load-current = <0 80000 1100000 3300000 0>;
         gpio-no-mux = <0>;
         pinctrl-names = "cam_default", "cam_suspend";
         pinctrl-0 = <&cam_sensor_rear_0_rest_active
             &cam_sensor_rear_0_ana_active
             &cam_sensor_rear_0_ana2_active
 	    &cam_sensor_rear_0_pvdd_active
-            &cam_sensor_rear_0_dvdd_active>;
+            &cam_sensor_rear_0_dvdd_active
+            &cam_sensor_rear_0_ois_active>;
         pinctrl-1 = <&cam_sensor_rear_0_rest_suspend
             &cam_sensor_rear_0_ana_suspend
             &cam_sensor_rear_0_ana2_suspend
             &cam_sensor_rear_0_pvdd_suspend
-	    &cam_sensor_rear_0_dvdd_suspend>;
+	    &cam_sensor_rear_0_dvdd_suspend
+	        &cam_sensor_rear_0_ois_suspend>;
         gpios = <&tlmm 14 0>,
             <&tlmm 30 0>,
             <&tlmm 11 0>,
             <&tlmm 29 0>,
             <&tlmm 25 0>,
-	    <&tlmm 24 0>;
+	    <&tlmm 24 0>,
+	    <&tlmm 87 0>;
         use-shared-clk;
         gpio-reset = <1>;
         gpio-vana = <2>;
         gpio-custom1 = <3>;
         gpio-custom2 = <4>;
 	    gpio-vdig = <5>;
-        gpio-req-tbl-num = <0 1 2 3 4 5>;
-        gpio-req-tbl-flags = <1 0 0 0 0 0>;
+	    gpio-vaf = <6>;
+        gpio-req-tbl-num = <0 1 2 3 4 5 6>;
+        gpio-req-tbl-flags = <1 0 0 0 0 0 0>;
         gpio-req-tbl-label = "CAMIF_MCLK1",
             "CAM_RESET0",
             "CAM_VANA_0",
             "CAM_VANA2_0",
             "CAM_PVDD",
-	    "CAM_VDIG";
+	    "CAM_VDIG",
+	        "OIS_REAR_0";
         sensor-mode = <0>;
         cci-device = <0>;
         cci-master = <1>;

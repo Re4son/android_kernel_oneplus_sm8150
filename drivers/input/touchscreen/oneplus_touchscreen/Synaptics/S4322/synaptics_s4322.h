@@ -1,17 +1,15 @@
-/***************************************************
- * File:synaptics_drivers_s4322.h
- * Copyright(C) 2008-2012 OPPO Mobile Comm Corp., Ltd
- * Description:
- *             synaptics s4322 driver
- * Version:1.0:
- * Date created:2017/04/17
- * Author: MingQiang.Guo@Bsp.Driver
- * TAG: BSP.TP.Init
- * *
- * -------------- Revision History: -----------------
-   <author >  <data>  <version>  <desc>
-****************************************************/
-
+/***********************************************************
+* Description : OnePlus touchpanel driver
+* 
+* File		  : synaptics_s4322.h
+*
+* Function	  : third party interface
+* 
+* Source	  : provide by synaptics
+*
+* Version	  : V1.0
+*
+***********************************************************/
 #ifndef SYNAPTICS_H_S4322
 #define SYNAPTICS_H_S4322
 
