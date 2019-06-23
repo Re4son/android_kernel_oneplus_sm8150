@@ -14,7 +14,7 @@ device.name1=OnePlus7Pro
 device.name2=guacamole
 device.name3=OnePlus 7 Pro
 device.name4=Guacamole
-device.name5=
+device.name5=OnePlus7ProNR
 supported.versions=
 '; } # end properties
 
