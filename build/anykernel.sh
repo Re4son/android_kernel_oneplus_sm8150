@@ -14,7 +14,12 @@ device.name1=OnePlus7Pro
 device.name2=guacamole
 device.name3=OnePlus 7 Pro
 device.name4=Guacamole
-device.name5=OnePlus7ProNR
+device.name5=OnePlus7
+device.name6=guacamoleb
+device.name7=OnePlus 7
+device.name8=Guacamoleb
+device.name9=OnePlus7ProNR
+device.name9=OnePlus7ProTMO
 supported.versions=
 '; } # end properties
 
