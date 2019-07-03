@@ -1048,8 +1048,9 @@ void extract_dci_pkt_rsp(unsigned char *buf, int len, int data_source,
 	 */
 	if ((rsp_buf->data_len + 9 + rsp_len) > rsp_buf->capacity) {
 		pr_alert("diag: create capacity for pkt rsp\n");
-		temp_buf = vzalloc(rsp_buf->capacity + 9 + rsp_len);
-
+		rsp_buf->capacity += 9 + rsp_len;
+		temp_buf = krealloc(rsp_buf->data, rsp_buf->capacity,
+				    GFP_KERNEL);
 		if (!temp_buf) {
 			pr_err("diag: DCI realloc failed\n");
 			mutex_unlock(&rsp_buf->data_mutex);
@@ -1057,11 +1058,6 @@ void extract_dci_pkt_rsp(unsigned char *buf, int len, int data_source,
 			mutex_unlock(&driver->dci_mutex);
 			return;
 		}
-
-		rsp_buf->capacity += 9 + rsp_len;
-		if (rsp_buf->capacity > rsp_buf->data_len)
-			memcpy(temp_buf, rsp_buf->data, rsp_buf->data_len);
-		vfree(rsp_buf->data);
 		rsp_buf->data = temp_buf;
 	}
 

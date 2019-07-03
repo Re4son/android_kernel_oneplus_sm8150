@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1051,7 +1051,11 @@ static int hdcp2_app_start(struct hdcp2_handle *handle)
 	}
 
 	rc = handle->tx_init(handle);
+	if (rc)
+		goto error;
 
+	if (!handle->legacy_app)
+		rc = hdcp2_app_start_auth(handle);
 error:
 	return rc;
 }
@@ -1191,7 +1195,6 @@ error:
 	pr_err("failed, rc=%d\n", rc);
 	return rc;
 }
-EXPORT_SYMBOL(hdcp2_force_encryption);
 
 static int hdcp2_app_query_stream(struct hdcp2_handle *handle)
 {
@@ -1240,9 +1243,6 @@ int hdcp2_app_comm(void *ctx, enum hdcp2_app_cmd cmd,
 	case HDCP2_CMD_START:
 		rc = hdcp2_app_start(handle);
 		break;
-	case HDCP2_CMD_START_AUTH:
-		rc = hdcp2_app_start_auth(handle);
-		break;
 	case HDCP2_CMD_PROCESS_MSG:
 		rc = hdcp2_app_process_msg(handle);
 		break;
@@ -1275,7 +1275,6 @@ int hdcp2_app_comm(void *ctx, enum hdcp2_app_cmd cmd,
 error:
 	return rc;
 }
-EXPORT_SYMBOL(hdcp2_app_comm);
 
 static int hdcp2_open_stream_helper(struct hdcp2_handle *handle,
 		uint8_t vc_payload_id,
@@ -1330,7 +1329,6 @@ int hdcp2_open_stream(void *ctx, uint8_t vc_payload_id, uint8_t stream_number,
 	return hdcp2_open_stream_helper(handle, vc_payload_id, stream_number,
 		stream_id);
 }
-EXPORT_SYMBOL(hdcp2_open_stream);
 
 static int hdcp2_close_stream_helper(struct hdcp2_handle *handle,
 		uint32_t stream_id)
@@ -1377,7 +1375,6 @@ int hdcp2_close_stream(void *ctx, uint32_t stream_id)
 
 	return hdcp2_close_stream_helper(handle, stream_id);
 }
-EXPORT_SYMBOL(hdcp2_close_stream);
 
 void *hdcp2_init(u32 device_type)
 {
@@ -1392,14 +1389,12 @@ void *hdcp2_init(u32 device_type)
 error:
 	return handle;
 }
-EXPORT_SYMBOL(hdcp2_init);
 
 void hdcp2_deinit(void *ctx)
 {
 	if (ctx)
 		kzfree(ctx);
 }
-EXPORT_SYMBOL(hdcp2_deinit);
 
 void *hdcp1_init(void)
 {

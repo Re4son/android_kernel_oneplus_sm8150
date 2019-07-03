@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2014,2017 Qualcomm Atheros, Inc.
- * Copyright (c) 2019, The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -71,7 +70,6 @@ static int wil_ioc_memio_dword(struct wil6210_priv *wil, void __user *data)
 	struct wil_memio io;
 	void __iomem *a;
 	bool need_copy = false;
-	int rc;
 
 	if (copy_from_user(&io, data, sizeof(io)))
 		return -EFAULT;
@@ -85,11 +83,6 @@ static int wil_ioc_memio_dword(struct wil6210_priv *wil, void __user *data)
 			io.op);
 		return -EINVAL;
 	}
-
-	rc = wil_mem_access_lock(wil);
-	if (rc)
-		return rc;
-
 	/* operation */
 	switch (io.op & wil_mmio_op_mask) {
 	case wil_mmio_read:
@@ -104,11 +97,8 @@ static int wil_ioc_memio_dword(struct wil6210_priv *wil, void __user *data)
 #endif
 	default:
 		wil_err(wil, "Unsupported operation, op = 0x%08x\n", io.op);
-		wil_mem_access_unlock(wil);
 		return -EINVAL;
 	}
-
-	wil_mem_access_unlock(wil);
 
 	if (need_copy) {
 		wil_dbg_ioctl(wil,
@@ -151,12 +141,6 @@ static int wil_ioc_memio_block(struct wil6210_priv *wil, void __user *data)
 	if (!block)
 		return -ENOMEM;
 
-	rc = wil_mem_access_lock(wil);
-	if (rc) {
-		kfree(block);
-		return rc;
-	}
-
 	/* operation */
 	switch (io.op & wil_mmio_op_mask) {
 	case wil_mmio_read:
@@ -164,14 +148,14 @@ static int wil_ioc_memio_block(struct wil6210_priv *wil, void __user *data)
 		wil_hex_dump_ioctl("Read  ", block, io.size);
 		if (copy_to_user(io.block, block, io.size)) {
 			rc = -EFAULT;
-			goto out_unlock;
+			goto out_free;
 		}
 		break;
 #if defined(CONFIG_WIL6210_WRITE_IOCTL)
 	case wil_mmio_write:
 		if (copy_from_user(block, io.block, io.size)) {
 			rc = -EFAULT;
-			goto out_unlock;
+			goto out_free;
 		}
 		wil_memcpy_toio_32(a, block, io.size);
 		wmb(); /* make sure write propagated to HW */
@@ -184,8 +168,7 @@ static int wil_ioc_memio_block(struct wil6210_priv *wil, void __user *data)
 		break;
 	}
 
-out_unlock:
-	wil_mem_access_unlock(wil);
+out_free:
 	kfree(block);
 	return rc;
 }

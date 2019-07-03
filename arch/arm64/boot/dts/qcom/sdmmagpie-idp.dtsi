@@ -34,14 +34,6 @@
 	status = "ok";
 };
 
-&pm6150a_amoled {
-	status = "ok";
-};
-
-&pm6150a_amoled {
-	status = "ok";
-};
-
 &ufsphy_mem {
 	compatible = "qcom,ufs-phy-qmp-v3";
 

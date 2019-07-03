@@ -679,6 +679,7 @@ static ssize_t native_display_customer_srgb_mode_show(struct device *dev,
 	return ret;
 }
 
+
 static ssize_t native_display_wide_color_mode_store(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {

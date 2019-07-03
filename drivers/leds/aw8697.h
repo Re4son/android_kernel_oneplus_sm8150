@@ -267,6 +267,7 @@ enum aw8697_haptic_tp_touch_flag {
 #define AW8697_HAPTIC_AI_X_DFT_W	200
 #define AW8697_HAPTIC_AI_Y_DFT_H	200
 
+
 enum aw8697_haptic_tz_level {
     AW8697_HAPTIC_TZ_LEVEL_LOW = 0,
     AW8697_HAPTIC_TZ_LEVEL_HIGH = 1,
@@ -364,16 +365,18 @@ struct tp_id{
 };
 
 struct tp{
-    struct tp_id id[AW8697_HAPTIC_TP_ID_MAX];
+    struct tp_id id[AW8697_HAPTIC_TP_ID_MAX+1];
     unsigned char id_index;
+    unsigned char virtual_id;
     unsigned int press_delay_min;
     unsigned int press_delay_max;
     unsigned int release_delay_max;
     unsigned char play_flag;
-	unsigned char press_flag;
-	unsigned char tp_ai_match_flag;
-	unsigned char tp_ai_check_flag;
-	unsigned char hap_match_without_tz_cnt;
+    unsigned char last_play_flag;
+    unsigned char press_flag;
+    unsigned char tp_ai_match_flag;
+    unsigned char tp_ai_check_flag;
+    unsigned char hap_match_without_tz_cnt;
     unsigned int no_play_cnt_max;
 };
 

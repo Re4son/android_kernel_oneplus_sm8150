@@ -41,7 +41,6 @@
 #include <asm/current.h>
 #include <linux/timer.h>
 
-
 #include "peripheral-loader.h"
 #include <linux/proc_fs.h>
 #include <linux/param_rw.h>

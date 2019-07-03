@@ -479,7 +479,6 @@ static void ipa3_uc_response_hdlr(enum ipa_irq_type interrupt,
 
 		if (ipa3_ctx->uc_ctx.uc_loaded) {
 			IPADBG("uC resp op INIT_COMPLETED is unexpected\n");
-			IPA_ACTIVE_CLIENTS_DEC_SIMPLE();
 			return;
 		}
 
@@ -527,8 +526,8 @@ static void ipa3_uc_response_hdlr(enum ipa_irq_type interrupt,
 
 void ipa3_uc_map_cntr_reg_notify(void)
 {
-	IPAWANDBG("complete the mapping of G_RD_CNTR register\n");
 	IPA_ACTIVE_CLIENTS_INC_SPECIAL("QMI_IPA_UC");
+	IPAWANDBG("complete the mapping of G_RD_CNTR register\n");
 	ipa3_uc_send_cmd(0,
 		IPA_CPU_2_HW_CMD_DEBUG_GET_INFO,
 		IPA_HW_2_CPU_RESPONSE_CMD_COMPLETED,

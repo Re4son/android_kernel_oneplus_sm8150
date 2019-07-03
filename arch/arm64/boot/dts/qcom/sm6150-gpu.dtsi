@@ -65,12 +65,10 @@
 			<&clock_gcc GCC_DDRSS_GPU_AXI_CLK>,
 			<&clock_gpucc GPU_CC_AHB_CLK>,
 			<&clock_gcc GCC_GPU_MEMNOC_GFX_CLK>,
-			<&clock_gpucc GPU_CC_HLOS1_VOTE_GPU_SMMU_CLK>,
 			<&clock_gpucc GPU_CC_CX_GMU_CLK>;
 
 		clock-names = "core_clk", "rbbmtimer_clk", "mem_clk",
-				"iface_clk", "mem_iface_clk",
-				"gpu_cc_hlos1_vote_gpu_smmu_clk", "gmu_clk";
+				"iface_clk", "mem_iface_clk", "gmu_clk";
 
 		/* Bus Scale Settings */
 		qcom,gpubw-dev = <&gpubw>;
@@ -462,11 +460,9 @@
 		qcom,protect = <0xa0000 0x10000>;
 
 		clocks =<&clock_gcc GCC_DDRSS_GPU_AXI_CLK>,
-			<&clock_gcc GCC_GPU_MEMNOC_GFX_CLK>,
-			<&clock_gpucc GPU_CC_HLOS1_VOTE_GPU_SMMU_CLK>;
+			<&clock_gcc GCC_GPU_MEMNOC_GFX_CLK>;
 
-		clock-names = "mem_clk", "mem_iface_clk",
-				"gpu_cc_hlos1_vote_gpu_smmu_clk";
+		clock-names = "mem_clk", "mem_iface_clk";
 
 		qcom,secure_align_mask = <0xfff>;
 		qcom,retention;
@@ -504,12 +500,9 @@
 			<&clock_gcc GCC_DDRSS_GPU_AXI_CLK>,
 			<&clock_gpucc GPU_CC_AHB_CLK>,
 			<&clock_gcc GCC_GPU_MEMNOC_GFX_CLK>,
-			<&clock_gpucc GPU_CC_HLOS1_VOTE_GPU_SMMU_CLK>,
 			<&clock_gpucc GPU_CC_GX_GFX3D_CLK>;
 
 		clock-names = "gmu", "rbbmtimer", "mem",
-				"iface", "mem_iface",
-				"gpu_cc_hlos1_vote_gpu_smmu_clk",
-				"core";
+				"iface", "mem_iface", "core";
 	};
 };

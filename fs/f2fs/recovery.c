@@ -259,10 +259,6 @@ static int find_fsync_dnodes(struct f2fs_sb_info *sbi, struct list_head *head,
 			return 0;
 
 		page = get_tmp_page(sbi, blkaddr);
-		if (IS_ERR(page)) {
-			err = PTR_ERR(page);
-			break;
-		}
 
 		if (!is_recoverable_dnode(page))
 			break;
@@ -361,8 +357,6 @@ static int check_index_in_prev_nodes(struct f2fs_sb_info *sbi,
 	}
 
 	sum_page = get_sum_page(sbi, segno);
-	if (IS_ERR(sum_page))
-		return PTR_ERR(sum_page);
 	sum_node = (struct f2fs_summary_block *)page_address(sum_page);
 	sum = sum_node->entries[blkoff];
 	f2fs_put_page(sum_page, 1);
@@ -479,10 +473,7 @@ retry_dn:
 
 	f2fs_wait_on_page_writeback(dn.node_page, NODE, true);
 
-	err = get_node_info(sbi, dn.nid, &ni);
-	if (err)
-		goto err;
-
+	get_node_info(sbi, dn.nid, &ni);
 	f2fs_bug_on(sbi, ni.ino != ino_of_node(page));
 	f2fs_bug_on(sbi, ofs_of_node(dn.node_page) != ofs_of_node(page));
 
@@ -585,10 +576,6 @@ static int recover_data(struct f2fs_sb_info *sbi, struct list_head *inode_list,
 		ra_meta_pages_cond(sbi, blkaddr);
 
 		page = get_tmp_page(sbi, blkaddr);
-		if (IS_ERR(page)) {
-			err = PTR_ERR(page);
-			break;
-		}
 
 		if (!is_recoverable_dnode(page)) {
 			f2fs_put_page(page, 1);

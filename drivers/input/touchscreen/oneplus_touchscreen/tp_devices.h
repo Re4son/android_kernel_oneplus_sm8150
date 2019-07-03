@@ -1,13 +1,16 @@
- /***********************************************************
- * Description : OnePlus touchpanel driver
- * 
- * File        : tp_devices.h      
+/***************************************************
+ * File:tp_devices.h
+ * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
+ * Description:
+ *             tp dev
+ * Version:1.0:
+ * Date created:2016/09/02
+ * Author: Tong.han@Bsp.Driver
+ * TAG: BSP.TP.Init
  *
- * Function    : touchpanel public interface  
- * 
- * Version     : V1.0 
- *
- ***********************************************************/
+ * -------------- Revision History: -----------------
+ *  <author >  <data>  <version>  <desc>
+ ***************************************************/
 #ifndef OPPO_TP_DEVICES_H
 #define OPPO_TP_DEVICES_H
 //device list define

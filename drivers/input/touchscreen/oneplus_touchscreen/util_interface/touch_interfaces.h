@@ -1,13 +1,16 @@
-/***********************************************************
-* Description : OnePlus touchpanel driver
-* 
-* File		  : touch_interfaces.h
-*
-* Function	  : touchpanel public interface
-* 
-* Version	  : V1.0
-*
-***********************************************************/
+/***************************************************
+ * File:touch_interfaces.h
+ * Copyright (c)  2008- 2030  Oppo Mobile communication Corp.ltd.
+ * Description:
+ *             Touch interface
+ * Version:1.0:
+ * Date created:2016/09/02
+ * Author: Tong.han@Bsp.Driver
+ * TAG: BSP.TP.Init
+ * *
+ * -------------- Revision History: -----------------
+ *  <author >  <data>  <version>  <desc>
+ ***************************************************/
 #include <linux/spi/spi.h>
 #ifndef TOUCH_INTERFACES_H
 #define TOUCH_INTERFACES_H

@@ -1399,7 +1399,6 @@ static int update_client_paths(struct msm_bus_client *client, bool log_trns,
 
 			dev = bus_find_device(&msm_bus_type, NULL,
 				(void *) &dest, msm_bus_device_match_adhoc);
-
 			if (dev)
 				msm_bus_commit_single(dev);
 		}

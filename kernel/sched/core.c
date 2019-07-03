@@ -1837,8 +1837,17 @@ void scheduler_ipi(void)
 	 */
 	preempt_fold_need_resched();
 
-	if (llist_empty(&this_rq()->wake_list) && !got_nohz_idle_kick())
+	if (llist_empty(&this_rq()->wake_list) && !got_nohz_idle_kick()
+		&& !got_boost_kick())
 		return;
+
+	if (got_boost_kick()) {
+		struct rq *rq = cpu_rq(cpu);
+
+		if (rq->curr->sched_class == &fair_sched_class)
+			check_for_migration(rq, rq->curr);
+		clear_boost_kick(cpu);
+	}
 
 	/*
 	 * Not all reschedule IPI handlers call irq_enter/irq_exit, since
@@ -6898,8 +6907,8 @@ static void sched_update_down_migrate_values(int cap_margin_levels,
 	}
 }
 
-static void sched_update_updown_migrate_values(unsigned int *data,
-					      int cap_margin_levels)
+static int sched_update_updown_migrate_values(unsigned int *data,
+					int cap_margin_levels, int ret)
 {
 	int i, cpu;
 	static const struct cpumask *cluster_cpus[MAX_CLUSTERS];
@@ -6911,10 +6920,15 @@ static void sched_update_updown_migrate_values(unsigned int *data,
 	}
 
 	if (data == &sysctl_sched_capacity_margin_up[0])
-		sched_update_up_migrate_values(cap_margin_levels, cluster_cpus);
-	else
+		sched_update_up_migrate_values(cap_margin_levels,
+							cluster_cpus);
+	else if (data == &sysctl_sched_capacity_margin_down[0])
 		sched_update_down_migrate_values(cap_margin_levels,
-						 cluster_cpus);
+							cluster_cpus);
+	else
+		ret = -EINVAL;
+
+	return ret;
 }
 
 int sched_updown_migrate_handler(struct ctl_table *table, int write,
@@ -6940,16 +6954,6 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 		goto unlock_mutex;
 	}
 
-	if (!write) {
-		ret = proc_douintvec_capacity(table, write, buffer, lenp, ppos);
-		goto unlock_mutex;
-	}
-
-	/*
-	 * Cache the old values so that they can be restored
-	 * if either the write fails (for example out of range values)
-	 * or the downmigrate and upmigrate are not in sync.
-	 */
 	old_val = kzalloc(table->maxlen, GFP_KERNEL);
 	if (!old_val) {
 		ret = -ENOMEM;
@@ -6960,22 +6964,19 @@ int sched_updown_migrate_handler(struct ctl_table *table, int write,
 
 	ret = proc_douintvec_capacity(table, write, buffer, lenp, ppos);
 
-	if (ret) {
-		memcpy(data, old_val, table->maxlen);
-		goto free_old_val;
-	}
-
-	for (i = 0; i < cap_margin_levels; i++) {
-		if (sysctl_sched_capacity_margin_up[i] >
-				sysctl_sched_capacity_margin_down[i]) {
-			memcpy(data, old_val, table->maxlen);
-			ret = -EINVAL;
-			goto free_old_val;
+	if (!ret && write) {
+		for (i = 0; i < cap_margin_levels; i++) {
+			if (sysctl_sched_capacity_margin_up[i] >
+					sysctl_sched_capacity_margin_down[i]) {
+				memcpy(data, old_val, table->maxlen);
+				ret = -EINVAL;
+				goto free_old_val;
+			}
 		}
+
+		ret = sched_update_updown_migrate_values(data,
+						cap_margin_levels, ret);
 	}
-
-	sched_update_updown_migrate_values(data, cap_margin_levels);
-
 free_old_val:
 	kfree(old_val);
 unlock_mutex:

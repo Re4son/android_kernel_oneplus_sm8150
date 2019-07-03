@@ -153,7 +153,6 @@ static void mmc_host_clk_gate_delayed(struct mmc_host *host)
 		mmc_gate_clock(host);
 		spin_lock_irqsave(&host->clk_lock, flags);
 		pr_debug("%s: gated MCI clock\n", mmc_hostname(host));
-		MMC_TRACE(host, "clocks are gated\n");
 	}
 	spin_unlock_irqrestore(&host->clk_lock, flags);
 	mutex_unlock(&host->clk_gate_mutex);
@@ -192,7 +191,6 @@ void mmc_host_clk_hold(struct mmc_host *host)
 
 		spin_lock_irqsave(&host->clk_lock, flags);
 		pr_debug("%s: ungated MCI clock\n", mmc_hostname(host));
-		MMC_TRACE(host, "clocks are ungated\n");
 	}
 	host->clk_requests++;
 	spin_unlock_irqrestore(&host->clk_lock, flags);
