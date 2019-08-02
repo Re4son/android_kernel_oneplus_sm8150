@@ -30,16 +30,16 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/Toolchains/Snapdragon_LLVM_v8.0.6/bin/
+	CC_DIR=/home/holyangel/android/toolchains/clang-r353983e/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
 
 # Source Path to kernel tree
-	k=/home/holyangel/android/Kernels/sm8150
+	k=/home/holyangel/android/kernels/sm8150
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/Kernels/sm8150/out"
+	o="O=/home/holyangel/android/kernels/sm8150/out"
 
 # Source Path to clean(empty) out folder
 	co=$k/out
