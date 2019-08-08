@@ -24,13 +24,13 @@
 
 enum { ASYNC, SYNC };
 
-static const int sync_read_expire  = HZ / 3;	/* max time before a sync read is submitted. */
-static const int sync_write_expire = 2 * HZ;	/* max time before a sync write is submitted. */
-static const int async_read_expire  =  HZ / 6;	/* ditto for async, these limits are SOFT! */
-static const int async_write_expire = 4 * HZ;	/* ditto for async, these limits are SOFT! */
+static const int sync_read_expire = 350;	/* max time before a read sync is submitted. */
+static const int sync_write_expire = 550;	/* max time before a write sync is submitted. */
+static const int async_read_expire = 250;	/* ditto for read async, these limits are SOFT! */
+static const int async_write_expire = 450;	/* ditto for write async, these limits are SOFT! */
 
-static const int writes_starved = 1;		/* max times reads can starve a write */
-static const int fifo_batch     = 3;		/* sequential requests treated as one, for throughput. */
+static const int writes_starved = 2;		/* max times reads can starve a write */
+static const int fifo_batch     = 8;		/* sequential requests treated as one, for throughput. */
 
 struct tripndroid_data {
 
