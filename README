@@ -4,9 +4,9 @@ SkyDragon Kernel for OnePlus 7 Pro
 For this repo, you can clone as-is to 'sm8150' folder
 git clone https://github.com/holyangel/sm8150.git
 
-I am currently using QCOM SnapDragon Clang v8.0.6 and Xanaxdroid Aarch64-8.0 toolchains. 
+I am currently using Google's Clang 9.0.5 and Xanaxdroid Aarch64-8.0 toolchains. 
 
-https://developer.qualcomm.com/software/snapdragon-llvm-compiler-android/tools
+https://gitlab.com/HDTC/gclang.git
 
 https://bitbucket.org/xanaxdroid/aarch64-8.0.git
 
