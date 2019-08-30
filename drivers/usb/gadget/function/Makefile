@@ -69,3 +69,5 @@ usb_f_gsi-y			:= f_gsi.o
 obj-$(CONFIG_USB_F_GSI)		+= usb_f_gsi.o
 usb_f_qdss-y			:= f_qdss.o u_qdss.o
 obj-$(CONFIG_USB_F_QDSS)	+= usb_f_qdss.o
+usb_f_hid-y                     := f_hid.o
+obj-$(CONFIG_USB_G_ANDROID)     += usb_f_hid.o
