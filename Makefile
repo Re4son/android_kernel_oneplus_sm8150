@@ -2,7 +2,7 @@
 VERSION = 4
 PATCHLEVEL = 14
 SUBLEVEL = 83
-EXTRAVERSION = -SDK-V.20.0
+EXTRAVERSION = -Re4son
 NAME = Petit Gorille
 
 # *DOCUMENTATION*
@@ -312,8 +312,8 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/x86/ -e s/x86_64/x86/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 ARCH		?= $(SUBARCH)
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
-HDK		:= /home/holyangel/android/toolchains/aarch64-8.0/
-HDK_TC		:= /home/holyangel/android/toolchains/aarch64-8.0/bin/
+HDK		:= /opt/Android/toolchains/aarch64-8.0/
+HDK_TC		:= /opt/Android/toolchains/aarch64-8.0/bin/
 ARCH		:= arm64
 SUBARCH		:= arm64
 CROSS_COMPILE	:= $(HDK_TC)aarch64-linux-android-

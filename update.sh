@@ -30,15 +30,12 @@ restore='\033[0m'
 # Build Script Variables
 ############################################################ 
 
-# Kernel version
-        ver=15
-
 # Toolchain location used to build
 	CC_DIR=/opt/Android/toolchains/gclang/bin/
 
 # Source defconfig used to build
 	##dc=nethunter_defconfig
-	dc=nethunter_defconfig
+	dc=SD_defconfig
 
 # Source Path to kernel tree
 	k=/opt/Android/android_kernel_oneplus_sm8150/
@@ -49,9 +46,6 @@ restore='\033[0m'
 # Source Path to clean(empty) out folder
 	co=$k/out
 
-# Destination path to modules 
-        zm=$k/build/system/lib/modules
-
 # CPU threads
 	th="-j$(grep -c ^processor /proc/cpuinfo)"
 
@@ -59,32 +53,31 @@ restore='\033[0m'
 # Cleanup
 ############################################################
 
-	echo "	Cleaning up out directory"
-	rm -Rf out/
-	echo "	Out directory removed!"
+#	echo "	Cleaning up out directory"
+#	rm -Rf out/
+#	echo "	Out directory removed!"
 
 ############################################################
 # Make out folder
 ############################################################
 
-	echo "	Making new out directory"
-	mkdir -p "$co"
-	((ver = $ver -1))
-	echo $ver > $co\/\.version
-	echo "	Created new out directory"
+#	echo "	Making new out directory"
+#	mkdir -p "$co"
+#	echo "	Created new out directory"
 
 ############################################################
 # Establish defconfig
 ############################################################
 
-	echo "	Establishing build environment.."
-	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- "$dc" menuconfig
+#	echo "	Establishing build environment.."
+#	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- "$dc" menuconfig
 	
 ############################################################
 # Start Compile
 ############################################################
 
 	echo "	Starting first build.."
+	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- menuconfig
 	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th
 	echo "	Build complete!"
 
