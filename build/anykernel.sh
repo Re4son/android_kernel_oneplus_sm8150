@@ -5,7 +5,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=SkyDragon Kernel for the OnePlus 7 Pro
+kernel.string=NetHunter Kernel for the OnePlus 7 (Pro)
 do.devicecheck=1
 do.modules=0
 do.cleanup=1
