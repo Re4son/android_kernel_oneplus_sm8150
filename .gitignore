@@ -12,6 +12,8 @@
 .*
 *.a
 *.bin
+!build/ramdisk/keyboard-descriptor.bin
+!build/ramdisk/mouse-descriptor.bin
 *.bz2
 *.c.[012]*.*
 *.dtb

@@ -52,6 +52,15 @@ else
   patch_cmdline "skip_override" "";
 fi;
 
+# nethunter part
+if [ ! "$(grep /init.nethunter.rc $ramdisk/init.rc)" ]; then
+  insert_after_last "$ramdisk/init.rc" "import .*\.rc" "import /init.nethunter.rc";
+fi;
+
+if [ ! "$(grep /dev/hidg* $ramdisk/ueventd.rc)" ]; then
+  insert_after_last "$ramdisk/ueventd.rc" "/dev/kgsl.*root.*root" "# HID driver\n/dev/hidg* 0666 root root";
+fi;
+
 # end ramdisk changes
 
 write_boot;
