@@ -6,16 +6,17 @@ blink_red='\033[05;31m'
 restore='\033[0m'
 
 ############################################################
-### Build script for HolyDragon kernel ###
+### Single run script for HolyDragon Kernel
 ############################################################
 
-# This is the full build script used to build the official kernel zip.
+# This is a cleanup and single run build script for testing purposes.
+# This does not zip anything for you, only executes a normal build. 
 
 # Minimum requirements to build:
 # Already working build environment :P 
 #
 # In this script: 
-# You will need to change the 'Source path to kernel tree' to match your current path to this source.
+# You will need to change the 'Source Path to kernel tree' to match your current path to this source.
 # You will need to change the 'Compile Path to out' to match your current path to this source.
 # You will also need to edit the '-j32' under 'Start Compile' section and adjust that to match the amount of cores you want to use to build.
 # 
@@ -29,16 +30,16 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/Toolchains/Snapdragon_LLVM_v6.0.9/bin/
+	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
 
 # Source Path to kernel tree
-	k=/home/holyangel/android/Kernels/sm8150
+	k=/home/holyangel/android/Kernels/sm8150qs
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/Kernels/sm8150/out"
+	o="O=/home/holyangel/android/Kernels/sm8150qs/out"
 
 # Source Path to clean(empty) out folder
 	co=$k/out

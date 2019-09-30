@@ -29,16 +29,16 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/Toolchains/Snapdragon_LLVM_v6.0.9/bin/
+	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
 
 # Source Path to kernel tree
-	k=/home/holyangel/android/Kernels/sm8150
+	k=/home/holyangel/android/Kernels/sm8150qs
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/Kernels/sm8150/out"
+	o="O=/home/holyangel/android/Kernels/sm8150qs/out"
 
 # CPU threads
 	th="-j$(grep -c ^processor /proc/cpuinfo)"
@@ -64,7 +64,7 @@ restore='\033[0m'
 ############################################################
 
 # Kernel zip Name
-	kn=SDK_OP7_AK2_OOS_V.1.0.zip
+	kn=SDK_OP7(T)P_OOS_V.1.0.zip
 
 ############################################################
 # Cleanup
