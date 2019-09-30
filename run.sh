@@ -36,10 +36,10 @@ restore='\033[0m'
 	dc=SD_defconfig
 
 # Source Path to kernel tree
-	k=/home/holyangel/android/Kernels/sm8150qs
+	k=/home/holyangel/android/kernels/sm8150qs
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/Kernels/sm8150qs/out"
+	o="O=/home/holyangel/android/kernels/sm8150qs/out"
 
 # Source Path to clean(empty) out folder
 	co=$k/out

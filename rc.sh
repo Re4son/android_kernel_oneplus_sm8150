@@ -33,7 +33,7 @@ restore='\033[0m'
 	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/Kernels/sm8150qs/out"
+	o="O=/home/holyangel/android/kernels/sm8150qs/out"
 
 # CPU threads
 	th="-j4"
