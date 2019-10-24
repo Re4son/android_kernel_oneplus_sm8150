@@ -8,7 +8,7 @@ properties() { '
 kernel.string=NetHunter Kernel for the OnePlus 7 (Pro)
 do.devicecheck=1
 do.modules=0
-do.cleanup=1
+do.cleanup=0
 do.cleanuponabort=0
 device.name1=OnePlus7Pro
 device.name2=guacamole
@@ -21,6 +21,7 @@ device.name8=Guacamoleb
 device.name9=OnePlus7ProNR
 device.name9=OnePlus7ProTMO
 supported.versions=
+supported.patchlevels=
 '; } # end properties
 
 # shell variables
@@ -33,13 +34,13 @@ ramdisk_compression=auto;
 . tools/ak3-core.sh;
 
 ## Trim partitions
-fstrim -v /cache;
-fstrim -v /data;
+#fstrim -v /cache;
+#fstrim -v /data;
 
 ## AnyKernel file attributes
 # set permissions/ownership for included ramdisk files
-chmod -R 750 $ramdisk/*;
-chown -R root:root $ramdisk/*;
+set_perm_recursive 0 0 755 644 $ramdisk/*;
+set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 
 ## AnyKernel install
 dump_boot;
@@ -52,17 +53,36 @@ else
   patch_cmdline "skip_override" "";
 fi;
 
-# nethunter part
-if [ ! "$(grep /init.nethunter.rc $ramdisk/init.rc)" ]; then
-  insert_after_last "$ramdisk/init.rc" "import .*\.rc" "import /init.nethunter.rc";
-fi;
-
-if [ ! "$(grep /dev/hidg* $ramdisk/ueventd.rc)" ]; then
-  insert_after_last "$ramdisk/ueventd.rc" "/dev/kgsl.*root.*root" "# HID driver\n/dev/hidg* 0666 root root";
-fi;
 
 # end ramdisk changes
 
 write_boot;
+
+
+# nethunter part
+absar_ramdisk=/system;
+$bb mount -o rw,remount -t auto /system;
+echo "System:" > /tmp/dbg.txt
+echo "-------" >> /tmp/dbg.txt
+ls /system >> /tmp/dbg.txt
+echo "System_root:" >> /tmp/dbg.txt
+echo "------------" >> /tmp/dbg.txt
+ls $absar_ramdisk >> /tmp/dbg.txt
+echo "absar_ramdisk:" >> /tmp/dbg.txt
+echo "------------" >> /tmp/dbg.txt
+ls absar_ramdisk/ >>/tmp/dbg.txt
+echo "home/absar_ramdisk:" >> /tmp/dbg.txt
+echo "-------------------" >> /tmp/dbg.txt
+ls $home/absar_ramdisk/ >>/tmp/dbg.txt
+set_perm_recursive 0 0 750 750 $home/absar_ramdisk/*;
+cp $home/absar_ramdisk/* $absar_ramdisk/ >> tmp/dpg.txt;
+
+if [ ! "$(grep /init.nethunter.rc $absar_ramdisk/init.rc)" ]; then
+  insert_after_last "$absar_ramdisk/init.rc" "import .*\.rc" "import /init.nethunter.rc";
+fi;
+
+if [ ! "$(grep /dev/hidg* $absar_ramdisk/ueventd.rc)" ]; then
+  insert_after_last "$absar_ramdisk/ueventd.rc" "/dev/kgsl.*root.*root" "# HID driver\n/dev/hidg* 0666 root root";
+fi;
 ## end install
 
