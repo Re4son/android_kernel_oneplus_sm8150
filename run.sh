@@ -37,7 +37,7 @@ restore='\033[0m'
 	CC_DIR=/opt/Android/toolchains/gclang/bin/
 
 # Source defconfig used to build
-	##dc=nethunter_defconfig
+	##dc=SD_defconfig
 	dc=nethunter_defconfig
 
 # Source Path to kernel tree
