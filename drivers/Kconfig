@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 menu "Device Drivers"
 
+source "drivers/rtl8812au/Kconfig"
+
+source "drivers/rtl8188eus/Kconfig"
+
 source "drivers/amba/Kconfig"
 
 source "drivers/base/Kconfig"
