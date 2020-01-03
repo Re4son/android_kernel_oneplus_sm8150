@@ -22,6 +22,8 @@ device.name9=OnePlus7ProNR
 device.name10=OnePlus7ProTMO
 device.name11=hotdogb
 device.name12=hotdog
+device.name13=OnePlus7T
+device.name14=OnePlus7TPro
 supported.versions=
 '; } # end properties
 
