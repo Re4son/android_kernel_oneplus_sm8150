@@ -19,7 +19,9 @@ device.name6=guacamoleb
 device.name7=OnePlus 7
 device.name8=Guacamoleb
 device.name9=OnePlus7ProNR
-device.name9=OnePlus7ProTMO
+device.name10=OnePlus7ProTMO
+device.name11=hotdogb
+device.name12=hotdog
 supported.versions=
 '; } # end properties
 
