@@ -72,6 +72,7 @@ restore='\033[0m'
 
 	echo "	Cleaning up out directory"
 	rm -Rf out/
+	rm $zi
 	echo "	Out directory removed!"
 
 ############################################################
