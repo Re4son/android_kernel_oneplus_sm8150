@@ -366,11 +366,36 @@ HOST_LFS_CFLAGS := $(shell getconf LFS_CFLAGS 2>/dev/null)
 HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
 HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 
+# HolyDragon Optimization Flags #
+
+# Specific GCC Optimizations	  
+EXTRA_OPTS := \
+	-falign-loops=1 -falign-functions=1 -falign-labels=1 -falign-jumps=1 \
+	-fira-hoist-pressure -fira-loop-pressure -fno-inline-small-functions \
+	-fsched-pressure -fsched-spec-load -ftree-vectorize \
+	-fno-guess-branch-probability -fpredictive-commoning \
+	-fvect-cost-model=cheap -fsimd-cost-model=cheap \
+	-ftree-partial-pre -fno-gcse -fno-schedule-insns
+
+# Arm64 Architecture Specific GCC Flags
+# fall back to -march=armv8-a in case the compiler isn't compatible
+# with -mcpu and -mtune
+ARM_ARCH_OPT := \
+	$(call cc-option,-march=armv8-a+crc+crypto+fp+simd,) \
+	$(call cc-option,-mtune=cortex-a57,) \
+	$(call cc-option,-mcpu=cortex-a57+crc+crypto+fp+simd,) 
+
+# Optional Flags
+GEN_OPT_FLAGS := \
+ -DNDEBUG -g0 -pipe \
+ -fomit-frame-pointer 
+
+
 HOSTCC       = gcc
 HOSTCXX      = g++
 HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
-		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS)
-HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
+		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS) $(GEN_OPT_FLAGS) $(EXTRA_OPTS)
+HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS) $(GEN_OPT_FLAGS) $(EXTRA_OPTS)
 HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS)
 HOST_LOADLIBES := $(HOST_LFS_LIBS)
 
@@ -408,7 +433,7 @@ NOSTDINC_FLAGS  =
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
 LDFLAGS_MODULE  = --strip-debug
-CFLAGS_KERNEL	=
+CFLAGS_KERNEL	= $(ARM_ARCH_OPT)
 AFLAGS_KERNEL	=
 LDFLAGS_vmlinux =
 
@@ -434,10 +459,10 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -std=gnu89
+		   -std=gnu89 $(ARM_ARCH_OPT)
 KBUILD_CPPFLAGS := -D__KERNEL__
 KBUILD_AFLAGS_KERNEL :=
-KBUILD_CFLAGS_KERNEL :=
+KBUILD_CFLAGS_KERNEL := $(ARM_ARCH_OPT)
 KBUILD_AFLAGS_MODULE  := -DMODULE
 KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
