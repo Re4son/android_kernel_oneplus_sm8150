@@ -136,3 +136,5 @@ out
 build/Image\.gz-dtb
 build/Image-dtb
 upload/
+
+build/Image\.lz4-dtb
