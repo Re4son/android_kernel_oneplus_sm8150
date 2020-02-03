@@ -28,32 +28,40 @@ restore='\033[0m'
 # Build Script Variables
 ############################################################ 
 
+# Kernel zip Name
+	kn=SDK_OP7TP_OOS_RV.6.2.zip
+
+# CPU threads
+	th="-j$(grep -c ^processor /proc/cpuinfo)"
+
+# Source Path to kernel tree
+	k='/android/kernels/sm8150qs'
+
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
+	CC_DIR=/android/toolchains/gclang/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
 
-# Source Path to kernel tree
-	k=/home/holyangel/android/kernels/sm8150qs
+# Image Name
+	img=$img_gz
+	img_gz=Image.gz-dtb
+	img_lz4=Image.lz4-dtb
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/kernels/sm8150qs/out"
-
-# CPU threads
-	th="-j$(grep -c ^processor /proc/cpuinfo)"
+	o="O=$k/out"
 
 # Source Path to clean(empty) out folder
 	co=$k/out
 
 # Source Path to compiled Image.gz-dtb
-	i=$k/out/arch/arm64/boot/Image.gz-dtb
+	i=$k/out/arch/arm64/boot/$img
 
 # Destination Path for compiled modules
 	zm=$k/build/system/lib/modules
 
 # Destination path for compiled Image.gz-dtb
-	zi=$k/build/Image.gz-dtb
+	zi=$k/build/$img
 	
 # Source path for building kernel zip
 	zp=$k/build/
@@ -62,24 +70,20 @@ restore='\033[0m'
 	zu=$k/upload/
 
 ############################################################
-
-# Kernel zip Name
-	kn=SDK_OP7TP_OOS_RV.6.2.zip
-
-############################################################
 # Cleanup
 ############################################################
 
-	echo "	Cleaning up out directory"
-	rm -Rf out/
-	rm $zi
-	echo "	Out directory removed!"
+	echo "	Cleaning up pregenerated image"
+	rm $k/build/$img_gz
+	rm $k/build/$img_lz4
+	echo "	Completed!"
 
 ############################################################
 # Make out folder
 ############################################################
 
 	echo "	Making new out directory"
+	rm -rf "$co"
 	mkdir -p "$co"
 	echo "	Created new out directory"
 

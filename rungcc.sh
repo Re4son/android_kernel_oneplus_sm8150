@@ -30,16 +30,16 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
+	CC_DIR=/android/toolchains/gclang/bin/
 
 # Source defconfig used to build
 	dc=SD_defconfig
 
 # Source Path to kernel tree
-	k=/home/holyangel/android/kernels/sm8150qs
+	k=/android/kernels/sm8150qs
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/kernels/sm8150qs/out"
+	o="O=/android/kernels/sm8150qs/out"
 
 # Source Path to clean(empty) out folder
 	co=$k/out

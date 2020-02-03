@@ -30,10 +30,10 @@ restore='\033[0m'
 ############################################################ 
 
 # Toolchain location used to build
-	CC_DIR=/home/holyangel/android/toolchains/gclang/bin/
+	CC_DIR=/android/toolchains/gclang/bin/
 
 # Compile Path to out 
-	o="O=/home/holyangel/android/kernels/sm8150qs/out"
+	o="O=/android/kernels/sm8150qs/out"
 
 # CPU threads
 	th="-j4"
