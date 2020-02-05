@@ -371,11 +371,7 @@ HOST_LFS_LIBS := $(shell getconf LFS_LIBS 2>/dev/null)
 # Specific GCC Optimizations	  
 EXTRA_OPTS := \
 	-falign-loops=1 -falign-functions=1 -falign-labels=1 -falign-jumps=1 \
-	-fira-hoist-pressure -fira-loop-pressure -fno-inline-small-functions \
-	-fsched-pressure -fsched-spec-load -ftree-vectorize \
-	-fno-guess-branch-probability -fpredictive-commoning \
-	-fvect-cost-model=cheap -fsimd-cost-model=cheap \
-	-ftree-partial-pre -fno-gcse -fno-schedule-insns
+	-fno-inline-small-functions -ftree-partial-pre -fno-schedule-insns
 
 # Arm64 Architecture Specific GCC Flags
 # fall back to -march=armv8-a in case the compiler isn't compatible
