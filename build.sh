@@ -44,7 +44,6 @@ restore='\033[0m'
 	dc=SD_defconfig
 
 # Image Name
-	img=$img_gz
 	img_gz=Image.gz-dtb
 	img_lz4=Image.lz4-dtb
 
@@ -55,13 +54,13 @@ restore='\033[0m'
 	co=$k/out
 
 # Source Path to compiled Image.gz-dtb
-	i=$k/out/arch/arm64/boot/$img
+	i=$k/out/arch/arm64/boot/$img_gz
 
 # Destination Path for compiled modules
 	zm=$k/build/system/lib/modules
 
 # Destination path for compiled Image.gz-dtb
-	zi=$k/build/$img
+	zi=$k/build/$img_gz
 	
 # Source path for building kernel zip
 	zp=$k/build/
