@@ -29,7 +29,7 @@ restore='\033[0m'
 ############################################################ 
 
 # Kernel zip Name
-	kn=SDK_OP7TP_OOS_RV.6.2.zip
+	kn=SDK_OP7TP_OOS_RV.6.3.zip
 
 # CPU threads
 	th="-j$(grep -c ^processor /proc/cpuinfo)"
