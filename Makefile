@@ -382,8 +382,8 @@ EXTRA_OPTS := \
 # with -mcpu and -mtune
 ARM_ARCH_OPT := \
 	$(call cc-option,-march=armv8-a+crc+crypto+fp+simd,) \
-	$(call cc-option,-mtune=cortex-a57,) \
-	$(call cc-option,-mcpu=cortex-a57+crc+crypto+fp+simd,) 
+	$(call cc-option,-mtune=cortex-a55,) \
+	$(call cc-option,-mcpu=cortex-a55+crc+crypto+fp+simd,) 
 
 # Optional Flags
 GEN_OPT_FLAGS := \
