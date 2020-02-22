@@ -4730,7 +4730,7 @@ int register_common_touch_device(struct touchpanel_data *pdata)
     ts->fd_enable = 0;
     ts->palm_enable = 1;
     ts->touch_count = 0;
-    ts->glove_enable = 0;
+    ts->glove_enable = 1;
     ts->view_area_touched = 0;
     ts->tp_suspend_order = LCD_TP_SUSPEND;
     ts->tp_resume_order = TP_LCD_RESUME;
