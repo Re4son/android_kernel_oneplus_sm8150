@@ -13,6 +13,8 @@ reset='\e[0m'
 # Kernel zip Name
 kn=SDK_OP7TP_OOS10_RV.6.3.zip
 
+export LOCALVERSION=-SDK_OP7TP_OOS10_DV.6.5
+
 # Resource Locations
 ##############################################
 # Target Architecture
