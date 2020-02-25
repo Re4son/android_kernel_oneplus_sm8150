@@ -688,6 +688,7 @@ LD		:= $(LDGOLD)
 endif
 ifdef CONFIG_LD_LLD
 LD		:= $(LDLLD)
+KBUILD_LDFLAGS += -O3
 endif
 
 ifdef CONFIG_LTO_CLANG
@@ -805,10 +806,6 @@ KBUILD_CFLAGS += $(call cc-option,-fno-delete-null-pointer-checks,)
 # These warnings generated too much noise in a regular build.
 # Use make W=1 to enable them (see scripts/Makefile.extrawarn)
 KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
-endif
-
-ifeq ($(ld-name),lld)
-KBUILD_LDFLAGS += -O2
 endif
 
 KBUILD_CFLAGS += $(call cc-disable-warning, unused-const-variable)
