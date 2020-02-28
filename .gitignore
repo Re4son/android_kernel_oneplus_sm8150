@@ -135,6 +135,7 @@ kernel/configs/android-*.cfg
 out/*
 build/Changelog\.txt
 out
+modules_out
 build/Image\.gz-dtb
 build/Image-dtb
 upload/

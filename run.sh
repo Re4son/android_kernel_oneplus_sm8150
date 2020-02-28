@@ -41,7 +41,7 @@ restore='\033[0m'
 	dc=nethunter_defconfig
 
 # Source Path to kernel tree
-	k=/opt/Android/android_kernel_oneplus_sm8150/
+	k=/opt/Android/android_kernel_oneplus_sm8150
 
 # Compile Path to out 
 	o="O=/opt/Android/android_kernel_oneplus_sm8150/out"
@@ -50,7 +50,7 @@ restore='\033[0m'
 	co=$k/out
 
 # Destination path to modules 
-        zm=$k/build/system/lib/modules
+        zm=$k/modules_out
 
 # CPU threads
 	th="-j$(grep -c ^processor /proc/cpuinfo)"
@@ -59,9 +59,10 @@ restore='\033[0m'
 # Cleanup
 ############################################################
 
-	echo "	Cleaning up out directory"
-	rm -Rf out/
-	echo "	Out directory removed!"
+	echo "	Removing files from previous run "
+	rm -rf out/
+	rm -rf modules_out/
+	echo "	Out directories removed!"
 
 ############################################################
 # Make out folder
@@ -72,6 +73,14 @@ restore='\033[0m'
 	((ver = $ver -1))
 	echo $ver > $co\/\.version
 	echo "	Created new out directory"
+
+############################################################
+# Make module folder
+############################################################
+
+	echo "	Making new module directory"
+	mkdir -p "$zm"
+	echo "	Created new module directory"
 
 ############################################################
 # Establish defconfig
@@ -85,7 +94,9 @@ restore='\033[0m'
 ############################################################
 
 	echo "	Starting first build.."
+	##make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th 2>&1 | tee build.log
 	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th
+	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- INSTALL_MOD_PATH=$zm $th modules_install
 	echo "	Build complete!"
 
 
