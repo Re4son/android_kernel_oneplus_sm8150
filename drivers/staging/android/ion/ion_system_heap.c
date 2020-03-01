@@ -283,7 +283,7 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
 	struct list_head pages;
 	struct list_head pages_from_pool;
 	struct page_info *info, *tmp_info;
-	int i = 0;
+	int i = 0, j;
 	unsigned int nents_sync = 0;
 	unsigned long size_remaining = PAGE_ALIGN(size);
 	unsigned int max_order = orders[0];
@@ -357,11 +357,12 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
 		ret = sg_alloc_table(&table_sync, nents_sync, GFP_KERNEL);
 		if (ret)
 			goto err_free_sg;
+		sg_sync = table_sync.sgl;
+	} else {
+		sg_sync = NULL;
 	}
 
 	i = 0;
-	sg = table->sgl;
-	sg_sync = table_sync.sgl;
 
 	/*
 	 * We now have two separate lists. One list contains pages from the
@@ -369,26 +370,28 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
 	 * together while preserving the ordering of the pages (higher order
 	 * first).
 	 */
-	do {
+	for_each_sg(table->sgl, sg, table->nents, j) {
 		info = list_first_entry_or_null(&pages, struct page_info, list);
 		tmp_info = list_first_entry_or_null(&pages_from_pool,
 						    struct page_info, list);
 		if (info && tmp_info) {
 			if (info->order >= tmp_info->order) {
 				i = process_info(info, sg, sg_sync, &data, i);
-				sg_sync = sg_next(sg_sync);
+
+				if (sg_sync)
+					sg_sync = sg_next(sg_sync);
 			} else {
 				i = process_info(tmp_info, sg, 0, 0, i);
 			}
 		} else if (info) {
 			i = process_info(info, sg, sg_sync, &data, i);
-			sg_sync = sg_next(sg_sync);
+
+			if (sg_sync)
+				sg_sync = sg_next(sg_sync);
 		} else if (tmp_info) {
 			i = process_info(tmp_info, sg, 0, 0, i);
 		}
-		sg = sg_next(sg);
-
-	} while (sg);
+	}
 
 	if (nents_sync) {
 		if (vmid > 0) {

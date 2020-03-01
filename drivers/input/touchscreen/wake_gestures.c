@@ -72,16 +72,13 @@
 #define SWEEP_TIMEOUT		320
 #define TRIGGER_TIMEOUT		500
 #define WAKE_GESTURE		0x0b
-#define SWEEP_RIGHT		0x01
-#define SWEEP_LEFT		0x02
-#define SWEEP_UP		0x04
-#define SWEEP_DOWN		0x08
 
 #define WAKE_GESTURES_ENABLED	1
 
 #define LOGTAG			"WG"
 #define OP7PRO			1
 #define OP7			2
+#define OP7T			3
 
 #if (WAKE_GESTURES_ENABLED)
 int gestures_switch = WG_DEFAULT;
@@ -89,8 +86,8 @@ static struct input_dev *gesture_dev;
 #endif
 
 /* Resources */
-static int s2w_switch = S2W_DEFAULT;
-static int dt2w_switch = DT2W_DEFAULT;
+int s2w_switch = S2W_DEFAULT;
+int dt2w_switch = DT2W_DEFAULT;
 bool wg_switch = 0;
 bool wg_switch_temp;
 bool wg_changed = false;
@@ -105,7 +102,7 @@ static unsigned long pwrtrigger_time[2] = {0, 0};
 static unsigned long long tap_time_pre = 0;
 static int touch_nr = 0, x_pre = 0, y_pre = 0;
 static bool touch_cnt = true;
-static int wake_vibrate = true;
+int wake_vibrate = true;
 static int sleep_vibrate = false;
 
 static unsigned int sweep_y_limit = SWEEP_Y_LIMIT;
@@ -142,7 +139,20 @@ static int __init get_model(char *cmdline_model)
 		sweep_x_max = SWEEP_X_MAX_OP7;
 		sweep_edge = SWEEP_EDGE_OP7;
 		hw_version = OP7;
+	} else if (strstr(cmdline_model, "18865")) {
+		sweep_y_limit = SWEEP_Y_LIMIT_OP7;
+		sweep_x_limit = SWEEP_X_LIMIT_OP7;
+		sweep_x_b1 = SWEEP_X_B1_OP7;
+		sweep_x_b2 = SWEEP_X_B2_OP7;
+		sweep_y_start = SWEEP_Y_START_OP7;
+		sweep_x_start = SWEEP_X_START_OP7;
+		sweep_x_final = SWEEP_X_FINAL_OP7;
+		sweep_y_next = SWEEP_Y_NEXT_OP7;
+		sweep_x_max = SWEEP_X_MAX_OP7;
+		sweep_edge = SWEEP_EDGE_OP7;
+		hw_version = OP7T;
 	}
+
 	return 0;
 }
 __setup("androidboot.project_name=", get_model);
@@ -772,6 +782,18 @@ static struct attribute_group attr_group = {
 	.attrs = attrs,
 };
 
+static struct attribute *op7_attrs[] = {
+	&sweep2sleep_attribute.attr,
+	&sweep2wake_attribute.attr,
+	&doubletap2wake_attribute.attr,
+	&wake_gestures_attribute.attr,
+	NULL,
+};
+
+static struct attribute_group op7_attr_group = {
+	.attrs = op7_attrs,
+};
+
 static struct kobject *android_touch_kobj;
 
 /*
@@ -841,7 +863,12 @@ static int __init wake_gestures_init(void)
 		pr_info("fail!!!!\n");
 		return -ENOMEM;
 	}
-	rc = sysfs_create_group(android_touch_kobj, &attr_group);
+	if (hw_version == OP7) {
+		wake_vibrate = 0;
+		rc = sysfs_create_group(android_touch_kobj, &op7_attr_group);
+	} else {
+		rc = sysfs_create_group(android_touch_kobj, &attr_group);
+	}
 	if (rc)
 		pr_warn("%s: sysfs_create_group failed\n", __func__);
 

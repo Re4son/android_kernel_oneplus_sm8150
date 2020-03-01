@@ -10,13 +10,13 @@ config TOUCHPANEL_ONEPLUS
 
 config TOUCHPANEL_SYNAPTICS
 #	default y
-	bool "TP Synaptics_IC enable or not"
+	bool "TP Synaptics_IC enable or not for OP"
 	---help---
 	say Y to enable driver for Touchpanel using Synaptics_IC
 
 config TOUCHPANEL_FOCAL
 #	default y
-	bool "TP Synaptics_IC enable or not"
+	bool "TP Synaptics_IC enable or not for OP"
 	---help---
 	say Y to enable driver for Touchpanel using FOCALTECK_IC
 

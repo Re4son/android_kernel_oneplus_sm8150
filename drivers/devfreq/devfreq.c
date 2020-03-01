@@ -288,12 +288,19 @@ int update_devfreq(struct devfreq *devfreq)
 		flags |= DEVFREQ_FLAG_LEAST_UPPER_BOUND; /* Use LUB */
 	}
 #ifdef CONFIG_CONTROL_CENTER
-	if (cc_ddr_set_enable) {
-		if (devfreq->dev.cc_marked) {
-			freq = max((unsigned long)atomic_read(&cc_expect_ddrfreq), freq);
-		}
-	}
-	if (cc_ddr_lock_enable) {
+	//if (cc_ddr_set_enable) {
+	//	if (devfreq->dev.cc_marked) {
+	//		freq = max((unsigned long)atomic_read(&cc_expect_ddrfreq), freq);
+	//	}
+	//}
+	//if (cc_ddr_lock_enable) {
+	//	if (devfreq->dev.cc_marked) {
+	//		freq_tmp = atomic_read(&cc_expect_ddrfreq);
+	//		if (freq_tmp)
+	//			freq = freq_tmp;
+	//	}
+	//}
+	if (cc_ddr_boost_enable) {
 		if (devfreq->dev.cc_marked) {
 			freq_tmp = atomic_read(&cc_expect_ddrfreq);
 			if (freq_tmp)
@@ -1316,7 +1323,7 @@ static int __init devfreq_init(void)
 
 	devfreq_wq = alloc_workqueue("devfreq_wq",
 			    WQ_HIGHPRI | WQ_UNBOUND | WQ_FREEZABLE |
-			    WQ_MEM_RECLAIM, 0);
+			    WQ_MEM_RECLAIM, 1);
 	if (!devfreq_wq) {
 		class_destroy(devfreq_class);
 		pr_err("%s: couldn't create workqueue\n", __FILE__);
