@@ -29,6 +29,33 @@ restore='\033[0m'
 ############################################################
 # Build Script Variables
 ############################################################ 
+##############################################
+
+# Kernel zip Name
+kn=SDK_OP7TP_OOS10_RV.6.4.zip
+
+export LOCALVERSION=-SDK_OP7TP_OOS10_RV-Re4son.6.4
+
+# Resource Locations
+##############################################
+# Target Architecture
+export ARCH=arm64
+# Target Sub-Architecture
+export SUBARCH=arm64
+# Path To Clang
+export CLANG_PATH=/opt/Android/toolchains/gclang/bin/
+# Export Clang Path to $PATH
+export PATH=${CLANG_PATH}:${PATH}
+# Clang Target Triple
+export CLANG_TRIPLE=aarch64-linux-gnu-
+# Location of Aarch64 GCC Toolchain *
+export CROSS_COMPILE=/opt/Android/toolchains/aarch64-9.2/bin/aarch64-none-linux-gnu-
+# Location Arm32 GCC Toolchain *
+export CROSS_COMPILE_ARM32=/opt/Android/toolchains/armhf-9.2/bin/arm-none-linux-gnueabihf-
+# Export Clang Libary To LD Library Path
+export LD_LIBRARY_PATH=/opt/Android/toolchains/gclang/lib64:$LD_LIBRARY_PATH
+
+
 
 # Kernel version
         ver=15
@@ -87,7 +114,8 @@ restore='\033[0m'
 ############################################################
 
 	echo "	Establishing build environment.."
-	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- "$dc" menuconfig
+	##make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- "$dc" menuconfig
+	make "$o" CC=clang "$dc" menuconfig
 	
 ############################################################
 # Start Compile
@@ -95,8 +123,10 @@ restore='\033[0m'
 
 	echo "	Starting first build.."
 	##make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th 2>&1 | tee build.log
-	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th
-	make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- INSTALL_MOD_PATH=$zm $th modules_install
+	##make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- $th
+	make "$o" CC=clang $th
+	##make "$o" REAL_CC=${CC_DIR}/clang CLANG_TRIPLE=aarch64-linux-gnu- INSTALL_MOD_PATH=$zm $th modules_install
+	make "$o" CC=clang INSTALL_MOD_PATH=$zm $th modules_install
 	echo "	Build complete!"
 
 
